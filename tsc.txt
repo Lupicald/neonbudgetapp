@@ -1,0 +1,19 @@
+src/context/LanguageContext.tsx(2,54): error TS2307: Cannot find module './i18n' or its corresponding type declarations.
+src/screens/AchievementsScreen.tsx(37,29): error TS2322: Type '(false | { flex: number; alignItems: "center"; gap: number; marginBottom: number; paddingVertical: number; } | { opacity: number; })[]' is not assignable to type 'ViewStyle'.
+  Types of property 'filter' are incompatible.
+    Type '{ <S extends false | { flex: number; alignItems: "center"; gap: number; marginBottom: number; paddingVertical: number; } | { opacity: number; }>(predicate: (value: false | { flex: number; alignItems: "center"; gap: number; marginBottom: number; paddingVertical: number; } | { ...; }, index: number, array: (false | .....' is not assignable to type 'string | readonly FilterFunction[] | undefined'.
+src/screens/DashboardScreen.tsx(42,12): error TS2451: Cannot redeclare block-scoped variable 'healthScore'.
+src/screens/DashboardScreen.tsx(42,25): error TS2451: Cannot redeclare block-scoped variable 'setHealthScore'.
+src/screens/DashboardScreen.tsx(43,12): error TS2451: Cannot redeclare block-scoped variable 'healthScore'.
+src/screens/DashboardScreen.tsx(43,25): error TS2451: Cannot redeclare block-scoped variable 'setHealthScore'.
+src/screens/DashboardScreen.tsx(276,41): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinearGradientProps): LinearGradient', gave the following error.
+    Type '{ colors: [string, string]; style: RegisteredStyle<AbsoluteFillStyle>; borderRadius: number; }' is not assignable to type 'IntrinsicAttributes & IntrinsicClassAttributes<LinearGradient> & Readonly<LinearGradientProps>'.
+      Property 'borderRadius' does not exist on type 'IntrinsicAttributes & IntrinsicClassAttributes<LinearGradient> & Readonly<LinearGradientProps>'.
+  Overload 2 of 2, '(props: LinearGradientProps, context: any): LinearGradient', gave the following error.
+    Type '{ colors: [string, string]; style: RegisteredStyle<AbsoluteFillStyle>; borderRadius: number; }' is not assignable to type 'IntrinsicAttributes & IntrinsicClassAttributes<LinearGradient> & Readonly<LinearGradientProps>'.
+      Property 'borderRadius' does not exist on type 'IntrinsicAttributes & IntrinsicClassAttributes<LinearGradient> & Readonly<LinearGradientProps>'.
+src/screens/DashboardScreen.tsx(346,36): error TS2322: Type '{ flex: number; gap: number; paddingTop: number; position: "relative"; overflow: "hidden"; }[]' is not assignable to type 'ViewStyle'.
+  Types of property 'filter' are incompatible.
+    Type '{ <S extends { flex: number; gap: number; paddingTop: number; position: "relative"; overflow: "hidden"; }>(predicate: (value: { flex: number; gap: number; paddingTop: number; position: "relative"; overflow: "hidden"; }, index: number, array: { ...; }[]) => value is S, thisArg?: any): S[]; (predicate: (value: { ...; ...' is not assignable to type 'string | readonly FilterFunction[] | undefined'.
+src/screens/DashboardScreen.tsx(367,36): error TS2322: Type '{ flex: number; gap: number; paddingTop: number; position: "relative"; overflow: "hidden"; }[]' is not assignable to type 'ViewStyle'.
