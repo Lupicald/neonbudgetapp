@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Archivos de exportación/importación (ej: cashew)
+*.csv
+cashew-*.csv
