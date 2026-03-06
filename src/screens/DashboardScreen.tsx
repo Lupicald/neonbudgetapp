@@ -22,6 +22,7 @@ import { generateProjection, getNextEvent, getProjectionChartData } from '../ser
 import { calculateHealthScore } from '../services/healthScore';
 import { getStreak } from '../services/gamification';
 import { ProjectedEvent, FinancialHealthScore, Account } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CHART_WIDTH = SCREEN_WIDTH - 48;
@@ -40,6 +41,7 @@ export const DashboardScreen: React.FC = () => {
     const [dailySpending, setDailySpending] = useState<{ date: string; total: number }[]>([]);
     const [healthScore, setHealthScore] = useState<FinancialHealthScore>({ score: 100, label: 'Excellent', color: Colors.cyberGreen });
     const [streak, setStreak] = useState(0);
+    const { t } = useLanguage();
 
     const loadData = useCallback(async () => {
         try {
@@ -144,7 +146,7 @@ export const DashboardScreen: React.FC = () => {
     const balanceGlow = balance >= 0 ? Colors.glowGreen : Colors.glowPink;
 
     const now = new Date();
-    const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 18 ? 'Good afternoon' : 'Good evening';
+    const greeting = now.getHours() < 12 ? t('dashboard.greeting') : now.getHours() < 18 ? t('dashboard.greeting') : t('dashboard.greeting');
 
     return (
         <View style={styles.container}>
@@ -169,7 +171,7 @@ export const DashboardScreen: React.FC = () => {
                     <View style={styles.header}>
                         <View>
                             <NeonText variant="caption" color={Colors.textTertiary}>{greeting} 👋</NeonText>
-                            <NeonText variant="title" color={Colors.textPrimary}>My Finances</NeonText>
+                            <NeonText variant="title" color={Colors.textPrimary}>{t('dashboard.title')}</NeonText>
                         </View>
                         <TouchableOpacity
                             style={styles.scoreBadge}
@@ -198,7 +200,7 @@ export const DashboardScreen: React.FC = () => {
                         {/* Glow orb inside card */}
                         <View style={styles.heroOrb} pointerEvents="none" />
 
-                        <NeonText variant="label" color="rgba(255,255,255,0.5)">TOTAL BALANCE</NeonText>
+                        <NeonText variant="label" color="rgba(255,255,255,0.5)">{t('dashboard.totalBalance').toUpperCase()}</NeonText>
                         <NeonText
                             variant="hero"
                             glow
@@ -219,7 +221,7 @@ export const DashboardScreen: React.FC = () => {
                                 >
                                     <View style={[styles.chipDot, { backgroundColor: Colors.cyberGreen }]} />
                                     <View>
-                                        <NeonText variant="label" color={Colors.textTertiary}>INCOME</NeonText>
+                                        <NeonText variant="label" color={Colors.textTertiary}>{t('dashboard.income').toUpperCase()}</NeonText>
                                         <NeonText variant="body" color={Colors.cyberGreen} style={{ fontWeight: '700' }}>
                                             +{formatCurrency(monthlyIncome)}
                                         </NeonText>
@@ -234,7 +236,7 @@ export const DashboardScreen: React.FC = () => {
                                 >
                                     <View style={[styles.chipDot, { backgroundColor: Colors.neonPink }]} />
                                     <View>
-                                        <NeonText variant="label" color={Colors.textTertiary}>EXPENSES</NeonText>
+                                        <NeonText variant="label" color={Colors.textTertiary}>{t('dashboard.expense').toUpperCase()}</NeonText>
                                         <NeonText variant="body" color={Colors.neonPink} style={{ fontWeight: '700' }}>
                                             -{formatCurrency(monthlyExpense)}
                                         </NeonText>
@@ -249,13 +251,13 @@ export const DashboardScreen: React.FC = () => {
                 <FadeIn>
                     <View style={styles.quickActions}>
                         {[
-                            { icon: 'add-circle', label: 'Add', color: Colors.neonPurple, glow: Colors.glowPurple, action: () => navigation.navigate('AddTransaction') },
-                            { icon: 'swap-horizontal', label: 'Transfer', color: Colors.electricBlue, glow: Colors.glowBlue, action: () => navigation.navigate('Accounts') },
-                            { icon: 'repeat', label: 'Recurring', color: Colors.cyberGreen, glow: Colors.glowGreen, action: () => navigation.navigate('Settings') },
-                            { icon: 'analytics', label: 'Analytics', color: Colors.neonOrange, glow: Colors.glowOrange, action: () => navigation.navigate('Analytics') },
-                        ].map((item) => (
+                            { icon: 'add-circle', label: t('dashboard.actions.add'), color: Colors.neonPurple, glow: Colors.glowPurple, action: () => navigation.navigate('AddTransaction') },
+                            { icon: 'swap-horizontal', label: t('dashboard.actions.transfer'), color: Colors.electricBlue, glow: Colors.glowBlue, action: () => navigation.navigate('Accounts') },
+                            { icon: 'repeat', label: t('dashboard.actions.recurring'), color: Colors.cyberGreen, glow: Colors.glowGreen, action: () => navigation.navigate('Settings') },
+                            { icon: 'analytics', label: t('dashboard.actions.analytics'), color: Colors.neonOrange, glow: Colors.glowOrange, action: () => navigation.navigate('Analytics') },
+                        ].map((item, idx) => (
                             <TouchableOpacity
-                                key={item.label}
+                                key={idx}
                                 style={styles.quickActionItem}
                                 onPress={item.action}
                                 activeOpacity={0.75}
@@ -269,8 +271,7 @@ export const DashboardScreen: React.FC = () => {
                                 }]}>
                                     <LinearGradient
                                         colors={[`${item.color}30`, `${item.color}10`] as [string, string]}
-                                        style={StyleSheet.absoluteFill}
-                                        borderRadius={20}
+                                        style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
                                     />
                                     <Ionicons name={item.icon as any} size={24} color={item.color} />
                                 </View>
@@ -286,7 +287,7 @@ export const DashboardScreen: React.FC = () => {
                 <FadeIn>
                     <GlassCard style={styles.section} glowColor={spendRatio > 0.9 ? Colors.glowPink : spendRatio > 0.7 ? Colors.glowOrange : Colors.glowBlue}>
                         <View style={styles.sectionHeader}>
-                            <NeonText variant="subtitle">Monthly Budget</NeonText>
+                            <NeonText variant="subtitle">{t('dashboard.monthlyBudget')}</NeonText>
                             <NeonText variant="caption" color={spendRatio > 0.9 ? Colors.neonPink : Colors.textTertiary}>
                                 {Math.round(spendRatio * 100)}% used
                             </NeonText>
@@ -306,7 +307,7 @@ export const DashboardScreen: React.FC = () => {
                 <FadeIn>
                     <GlassCard style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <NeonText variant="subtitle">Balance Projection</NeonText>
+                            <NeonText variant="subtitle">{t('dashboard.projection')}</NeonText>
                             <View style={styles.chartLegend}>
                                 <View style={[styles.legendDot, { backgroundColor: Colors.electricBlue }]} />
                                 <NeonText variant="caption" color={Colors.textTertiary}>30 days</NeonText>
@@ -387,7 +388,7 @@ export const DashboardScreen: React.FC = () => {
                     <FadeIn>
                         <GlassCard style={styles.section}>
                             <View style={styles.sectionHeader}>
-                                <NeonText variant="subtitle">Spending by Category</NeonText>
+                                <NeonText variant="subtitle">{t('dashboard.categorySpending')}</NeonText>
                                 <TouchableOpacity onPress={() => navigation.navigate('Analytics')}>
                                     <NeonText variant="caption" color={Colors.electricBlue}>See all</NeonText>
                                 </TouchableOpacity>
@@ -421,7 +422,7 @@ export const DashboardScreen: React.FC = () => {
                     <FadeIn>
                         <GlassCard style={styles.section}>
                             <View style={styles.sectionHeader}>
-                                <NeonText variant="subtitle">Daily Spending</NeonText>
+                                <NeonText variant="subtitle">{t('dashboard.dailySpending')}</NeonText>
                                 <NeonText variant="caption" color={Colors.textTertiary}>Last 7 days</NeonText>
                             </View>
                             <BarChart
@@ -446,7 +447,7 @@ export const DashboardScreen: React.FC = () => {
                     <FadeIn>
                         <GlassCard style={styles.section}>
                             <View style={styles.sectionHeader}>
-                                <NeonText variant="subtitle">Accounts</NeonText>
+                                <NeonText variant="subtitle">{t('dashboard.myAccounts')}</NeonText>
                                 <TouchableOpacity onPress={() => navigation.navigate('Accounts')}>
                                     <NeonText variant="caption" color={Colors.electricBlue}>Manage</NeonText>
                                 </TouchableOpacity>

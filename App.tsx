@@ -4,6 +4,7 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { initDatabase } from './src/database/database';
 import { Colors } from './src/theme';
 import { NeonText } from './src/components/NeonText';
+import { LanguageProvider } from './src/context/LanguageContext';
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -45,7 +46,11 @@ export default function App() {
     );
   }
 
-  return <AppNavigator />;
+  return (
+    <LanguageProvider>
+      <AppNavigator />
+    </LanguageProvider>
+  );
 }
 
 const styles = StyleSheet.create({

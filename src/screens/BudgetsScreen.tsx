@@ -4,7 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassCard, NeonText, NeonButton, GlowInput, ProgressBar, CategoryIcon } from '../components';
 import { Colors, Spacing, BorderRadius } from '../theme';
-import { getBudgets, addBudget, deleteBudget } from '../database/budgetService';
+import { getBudgets, addBudget, updateBudget, deleteBudget } from '../database/budgetService';
 import { getCategories } from '../database/categoryService';
 import { Budget, Category } from '../types';
 import { formatCurrency, getMonthKey } from '../utils';
@@ -15,24 +15,54 @@ export const BudgetsScreen: React.FC = () => {
     const [showForm, setShowForm] = useState(false);
     const [selectedCat, setSelectedCat] = useState<Category | null>(null);
     const [limitAmount, setLimitAmount] = useState('');
+    const [editingId, setEditingId] = useState<number | null>(null);
 
     const loadData = useCallback(async () => {
         const [b, c] = await Promise.all([getBudgets(), getCategories()]);
         setBudgets(b);
-        setCategories(c);
+        // Inject "All Expenses" category at the beginning
+        const globalCat: Category = { id: -1, name: 'All Expenses', icon: 'apps-outline', color: Colors.electricBlue, is_default: 1 };
+        setCategories([globalCat, ...c]);
     }, []);
 
     useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
     const handleSave = async () => {
-        if (!selectedCat || !parseFloat(limitAmount)) {
-            Alert.alert('Error', 'Please select a category and enter a limit');
+        const numLimit = parseFloat(limitAmount.replace(/,/g, ''));
+        if (!selectedCat || !numLimit || numLimit <= 0) {
+            Alert.alert('Error', 'Please select a category and enter a valid limit');
             return;
         }
-        await addBudget(selectedCat.id, parseFloat(limitAmount));
+
+        if (editingId) {
+            await updateBudget(editingId, numLimit);
+        } else {
+            // Check if budget already exists for this category
+            const exists = budgets.find(b => b.category_id === selectedCat.id);
+            if (exists) {
+                Alert.alert('Error', 'A budget for this category already exists');
+                return;
+            }
+            await addBudget(selectedCat.id, numLimit);
+        }
+
         setShowForm(false);
-        setLimitAmount('');
+        resetForm();
         loadData();
+    };
+
+    const resetForm = () => {
+        setEditingId(null);
+        setLimitAmount('');
+        setSelectedCat(null);
+    };
+
+    const handleEdit = (b: Budget) => {
+        setEditingId(b.id);
+        const cat = categories.find(c => c.id === b.category_id) || { id: b.category_id, name: b.category_name!, icon: b.category_icon!, color: b.category_color!, is_default: 1 };
+        setSelectedCat(cat);
+        setLimitAmount(b.monthly_limit.toString());
+        setShowForm(true);
     };
 
     const handleDelete = (b: Budget) => {
@@ -46,7 +76,14 @@ export const BudgetsScreen: React.FC = () => {
         <View style={styles.container}>
             <View style={styles.header}>
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Budgets</NeonText>
-                <TouchableOpacity onPress={() => setShowForm(!showForm)} style={{ paddingTop: Spacing.xxl }}>
+                <TouchableOpacity onPress={() => {
+                    if (showForm) {
+                        setShowForm(false);
+                        resetForm();
+                    } else {
+                        setShowForm(true);
+                    }
+                }} style={{ paddingTop: Spacing.xxl }}>
                     <Ionicons name={showForm ? 'close' : 'add-circle'} size={28} color={Colors.electricBlue} />
                 </TouchableOpacity>
             </View>
@@ -70,17 +107,18 @@ export const BudgetsScreen: React.FC = () => {
                             <GlassCard style={styles.form} glowColor={Colors.electricBlue}>
                                 <NeonText variant="label" style={styles.label}>CATEGORY</NeonText>
                                 <View style={styles.catGrid}>
-                                    {categories.filter(c => !budgets.some(b => b.category_id === c.id)).map(c => (
+                                    {categories.filter(c => c.id === selectedCat?.id || !budgets.some(b => b.category_id === c.id)).map(c => (
                                         <TouchableOpacity key={c.id}
                                             style={[styles.catBtn, selectedCat?.id === c.id && { backgroundColor: `${c.color}20`, borderColor: c.color }]}
-                                            onPress={() => setSelectedCat(c)}>
+                                            onPress={() => setSelectedCat(c)}
+                                            disabled={!!editingId}>
                                             <CategoryIcon icon={c.icon} color={c.color} size={24} />
                                             <NeonText variant="caption" numberOfLines={1}>{c.name}</NeonText>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
-                                <GlowInput label="Monthly Limit" placeholder="0.00" value={limitAmount} onChangeText={setLimitAmount} keyboardType="decimal-pad" />
-                                <NeonButton title="Set Budget" onPress={handleSave} variant="secondary" fullWidth />
+                                <GlowInput label="Monthly Limit" placeholder="0.00" value={limitAmount} onChangeText={setLimitAmount} keyboardType="numeric" />
+                                <NeonButton title={editingId ? "Update Budget" : "Set Budget"} onPress={handleSave} variant="secondary" fullWidth />
                             </GlassCard>
                         );
                     }
@@ -93,7 +131,7 @@ export const BudgetsScreen: React.FC = () => {
                     const isDanger = progress > 0.9;
 
                     return (
-                        <TouchableOpacity onLongPress={() => handleDelete(b)}>
+                        <View key={b.id}>
                             <GlassCard style={styles.budgetCard} glowColor={isDanger ? Colors.neonPink : isWarning ? Colors.neonYellow : undefined}>
                                 <View style={styles.budgetHeader}>
                                     <View style={styles.budgetInfo}>
@@ -124,8 +162,18 @@ export const BudgetsScreen: React.FC = () => {
                                         <NeonText variant="caption" color={Colors.neonPink}>Over budget!</NeonText>
                                     </View>
                                 )}
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.md, marginTop: Spacing.md }}>
+                                    <TouchableOpacity onPress={() => handleEdit(b)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <Ionicons name="pencil" size={14} color={Colors.electricBlue} />
+                                        <NeonText variant="caption" color={Colors.electricBlue}>Edit</NeonText>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleDelete(b)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <Ionicons name="trash" size={14} color={Colors.danger} />
+                                        <NeonText variant="caption" color={Colors.danger}>Delete</NeonText>
+                                    </TouchableOpacity>
+                                </View>
                             </GlassCard>
-                        </TouchableOpacity>
+                        </View>
                     );
                 }}
             />

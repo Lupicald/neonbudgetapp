@@ -19,7 +19,7 @@ export const EditTransactionScreen: React.FC = () => {
     const tx: Transaction = route.params?.transaction;
 
     const [type, setType] = useState<TransactionType>(tx?.type || 'expense');
-    const [amount, setAmount] = useState(String(tx?.amount || ''));
+    const [amount, setAmount] = useState(tx?.amount?.toString() || '');
     const [merchantName, setMerchantName] = useState(tx?.merchant_name || '');
     const [note, setNote] = useState(tx?.note || '');
     const [date, setDate] = useState(tx?.date || '');
@@ -58,9 +58,11 @@ export const EditTransactionScreen: React.FC = () => {
     };
 
     const handleSave = async () => {
-        const numAmount = parseFloat(amount);
-        if (!numAmount || numAmount <= 0) { Alert.alert('Error', 'Enter a valid amount'); return; }
-        if (!selectedCategory) { Alert.alert('Error', 'Select a category'); return; }
+        const numAmount = parseFloat(amount.replace(/,/g, ''));
+        if (!numAmount || numAmount <= 0) {
+            Alert.alert('Error', 'Please enter a valid amount');
+            return;
+        } if (!selectedCategory) { Alert.alert('Error', 'Select a category'); return; }
 
         setSaving(true);
         try {

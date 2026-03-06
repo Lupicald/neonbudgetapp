@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle } from 'react-native';
+import { TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle, TouchableOpacity } from 'react-native';
 import { Colors, BorderRadius, Spacing, FontSize, FontWeight } from '../theme';
 
 interface GlowInputProps extends TextInputProps {
@@ -23,7 +23,8 @@ export const GlowInput: React.FC<GlowInputProps> = ({
     return (
         <View style={[styles.container, containerStyle]}>
             {label && <Text style={styles.label}>{label}</Text>}
-            <View
+            <TouchableOpacity
+                activeOpacity={1}
                 style={[
                     styles.inputWrapper,
                     focused && {
@@ -36,16 +37,19 @@ export const GlowInput: React.FC<GlowInputProps> = ({
                     },
                     error ? styles.errorBorder : null,
                 ]}
+                onPress={() => {
+                    // El teclado se abrirá al setear el foco en el TextInput automáticamente porque todo el botón es tocable.
+                }}
             >
                 {icon && <View style={styles.iconWrapper}>{icon}</View>}
                 <TextInput
-                    style={[styles.input, icon ? styles.inputWithIcon : null]}
+                    style={[styles.input, icon ? styles.inputWithIcon : null, { color: Colors.textPrimary }]}
                     placeholderTextColor={Colors.textMuted}
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
                     {...rest}
                 />
-            </View>
+            </TouchableOpacity>
             {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
     );

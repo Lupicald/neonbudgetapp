@@ -1,10 +1,12 @@
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns';
 
 export const formatCurrency = (amount: number): string => {
-    return `$${Math.abs(amount).toLocaleString('en-US', {
+    const isNegative = amount < 0;
+    const formatted = Math.abs(amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    })}`;
+    });
+    return isNegative ? `-$${formatted}` : `$${formatted}`;
 };
 
 export const formatDate = (dateStr: string): string => {

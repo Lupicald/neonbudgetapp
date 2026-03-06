@@ -10,6 +10,7 @@ import { Colors, Spacing, BorderRadius } from '../theme';
 import { getSetting, setSetting } from '../database/settingsService';
 import { resetDatabase } from '../database/database';
 import { shareCSV, importFromCSV } from '../services/csvService';
+import { useLanguage } from '../context/LanguageContext';
 
 const CURRENCIES = ['MXN', 'USD', 'EUR', 'GBP', 'CAD', 'COP', 'ARS', 'BRL'];
 
@@ -19,6 +20,7 @@ export const SettingsScreen: React.FC = () => {
     const [currency, setCurrency] = useState('MXN');
     const [importing, setImporting] = useState(false);
     const [exporting, setExporting] = useState(false);
+    const { language, setLanguage, t } = useLanguage();
 
     const loadData = useCallback(async () => {
         const dl = await getSetting('debt_limit');
@@ -137,6 +139,23 @@ export const SettingsScreen: React.FC = () => {
                     <NeonText variant="caption" color={Colors.textMuted} style={{ marginTop: Spacing.sm }}>
                         Compatible with Cashew app format
                     </NeonText>
+                </GlassCard>
+
+                {/* Language */}
+                <NeonText variant="subtitle" style={styles.sectionTitle}>{t('settings.language')}</NeonText>
+                <GlassCard style={styles.section}>
+                    <View style={styles.currencyRow}>
+                        <TouchableOpacity
+                            style={[styles.currencyChip, language === 'en' && styles.currencyActive]}
+                            onPress={() => setLanguage('en')}>
+                            <NeonText variant="caption" color={language === 'en' ? Colors.electricBlue : Colors.textTertiary}>{t('settings.english')}</NeonText>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.currencyChip, language === 'es' && styles.currencyActive]}
+                            onPress={() => setLanguage('es')}>
+                            <NeonText variant="caption" color={language === 'es' ? Colors.electricBlue : Colors.textTertiary}>{t('settings.spanish')}</NeonText>
+                        </TouchableOpacity>
+                    </View>
                 </GlassCard>
 
                 {/* Currency */}

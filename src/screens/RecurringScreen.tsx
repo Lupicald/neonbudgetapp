@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { GlassCard, NeonText, NeonButton, GlowInput, CategoryIcon } from '../components';
 import { Colors, Spacing, BorderRadius } from '../theme';
 import * as Haptics from 'expo-haptics';
-import { getRecurringItems, addRecurringItem, deleteRecurringItem, toggleRecurringItem, recordRecurringPayment } from '../database/recurringService';
+import { getRecurringItems, addRecurringItem, updateRecurringItem, deleteRecurringItem, toggleRecurringItem, recordRecurringPayment } from '../database/recurringService';
 import { getCategories } from '../database/categoryService';
 import { RecurringItem, Category, RecurringFrequency, TransactionType } from '../types';
 import { formatCurrency, getDayOfWeekName, toISODateString } from '../utils';
@@ -23,6 +23,7 @@ export const RecurringScreen: React.FC<Props> = ({ type }) => {
     const [dayOfMonth, setDayOfMonth] = useState<number>(1);
     const [intervalDays, setIntervalDays] = useState('30');
     const [selectedCat, setSelectedCat] = useState<Category | null>(null);
+    const [editingId, setEditingId] = useState<number | null>(null);
 
     const loadData = useCallback(async () => {
         const [ri, cats] = await Promise.all([getRecurringItems(type), getCategories()]);
@@ -34,20 +35,57 @@ export const RecurringScreen: React.FC<Props> = ({ type }) => {
     useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
     const handleSave = async () => {
-        if (!name.trim() || !parseFloat(amount) || !selectedCat) {
+        const numAmount = parseFloat(amount.replace(/,/g, ''));
+        if (!name.trim() || !numAmount || !selectedCat) {
             Alert.alert('Error', 'Please fill all fields');
             return;
         }
-        await addRecurringItem(
-            type, name.trim(), parseFloat(amount), selectedCat.id,
-            frequency, parseInt(intervalDays) || 30,
-            ['weekly', 'biweekly'].includes(frequency) ? dayOfWeek : null,
-            frequency === 'monthly' ? dayOfMonth : null,
-            toISODateString(new Date())
-        );
+
+        if (editingId) {
+            await updateRecurringItem(
+                editingId, name.trim(), numAmount, selectedCat.id,
+                frequency, parseInt(intervalDays) || 30,
+                ['weekly', 'biweekly'].includes(frequency) ? dayOfWeek : null,
+                frequency === 'monthly' ? dayOfMonth : null,
+                toISODateString(new Date())
+            );
+        } else {
+            await addRecurringItem(
+                type, name.trim(), numAmount, selectedCat.id,
+                frequency, parseInt(intervalDays) || 30,
+                ['weekly', 'biweekly'].includes(frequency) ? dayOfWeek : null,
+                frequency === 'monthly' ? dayOfMonth : null,
+                toISODateString(new Date())
+            );
+        }
+
         setShowForm(false);
-        setName(''); setAmount('');
+        resetForm();
         loadData();
+    };
+
+    const resetForm = () => {
+        setEditingId(null);
+        setName('');
+        setAmount('');
+        setFrequency('monthly');
+        setDayOfWeek(4);
+        setDayOfMonth(1);
+        setIntervalDays('30');
+        if (categories.length > 0) setSelectedCat(categories[0]);
+    };
+
+    const handleEdit = (item: RecurringItem) => {
+        setEditingId(item.id);
+        setName(item.name);
+        setAmount(item.amount.toString());
+        setFrequency(item.frequency);
+        setDayOfWeek(item.day_of_week ?? 4);
+        setDayOfMonth(item.day_of_month ?? 1);
+        setIntervalDays(item.interval_days.toString());
+        const cat = categories.find(c => c.id === item.category_id);
+        if (cat) setSelectedCat(cat);
+        setShowForm(true);
     };
 
     const handleDelete = (item: RecurringItem) => {
@@ -94,7 +132,14 @@ export const RecurringScreen: React.FC<Props> = ({ type }) => {
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>
                     Recurring {isIncome ? 'Income' : 'Expenses'}
                 </NeonText>
-                <TouchableOpacity onPress={() => setShowForm(!showForm)} style={{ paddingTop: Spacing.xxl }}>
+                <TouchableOpacity onPress={() => {
+                    if (showForm) {
+                        setShowForm(false);
+                        resetForm();
+                    } else {
+                        setShowForm(true);
+                    }
+                }} style={{ paddingTop: Spacing.xxl }}>
                     <Ionicons name={showForm ? 'close' : 'add-circle'} size={28} color={accentColor} />
                 </TouchableOpacity>
             </View>
@@ -103,7 +148,7 @@ export const RecurringScreen: React.FC<Props> = ({ type }) => {
                 {showForm && (
                     <GlassCard style={styles.form} glowColor={accentColor}>
                         <GlowInput label="Name" placeholder={isIncome ? 'e.g. Salary' : 'e.g. Netflix'} value={name} onChangeText={setName} glowColor={accentColor} />
-                        <GlowInput label="Amount" placeholder="0.00" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" glowColor={accentColor} />
+                        <GlowInput label="Amount" placeholder="0.00" value={amount} onChangeText={setAmount} keyboardType="numeric" glowColor={accentColor} />
 
                         <NeonText variant="label" style={styles.label}>FREQUENCY</NeonText>
                         <View style={styles.freqRow}>
@@ -155,7 +200,7 @@ export const RecurringScreen: React.FC<Props> = ({ type }) => {
                             ))}
                         </View>
 
-                        <NeonButton title="Save" onPress={handleSave} variant={isIncome ? 'primary' : 'danger'} fullWidth />
+                        <NeonButton title={editingId ? "Update" : "Save"} onPress={handleSave} variant={isIncome ? 'primary' : 'danger'} fullWidth />
                     </GlassCard>
                 )}
 
@@ -166,7 +211,7 @@ export const RecurringScreen: React.FC<Props> = ({ type }) => {
                     </View>
                 ) : (
                     items.map(item => (
-                        <TouchableOpacity key={item.id} onLongPress={() => handleDelete(item)} activeOpacity={0.7}>
+                        <View key={item.id}>
                             <GlassCard style={styles.itemCard} glowColor={item.is_active ? undefined : undefined}>
                                 <CategoryIcon icon={item.category_icon || 'repeat'} color={item.category_color || accentColor} size={40} />
                                 <View style={{ flex: 1 }}>
@@ -177,6 +222,18 @@ export const RecurringScreen: React.FC<Props> = ({ type }) => {
                                         {item.day_of_month ? `, day ${item.day_of_month}` : ''}
                                     </NeonText>
                                     <NeonText variant="caption" color={Colors.textMuted}>Next: {item.next_date}</NeonText>
+
+                                    {/* Edit / Delete Buttons */}
+                                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.sm }}>
+                                        <TouchableOpacity onPress={() => handleEdit(item)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                            <Ionicons name="pencil" size={14} color={Colors.electricBlue} />
+                                            <NeonText variant="caption" color={Colors.electricBlue}>Edit</NeonText>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => handleDelete(item)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                            <Ionicons name="trash" size={14} color={Colors.danger} />
+                                            <NeonText variant="caption" color={Colors.danger}>Delete</NeonText>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
                                 <View style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
                                     <View style={{ alignItems: 'flex-end' }}>
@@ -195,7 +252,7 @@ export const RecurringScreen: React.FC<Props> = ({ type }) => {
                                     </TouchableOpacity>
                                 </View>
                             </GlassCard>
-                        </TouchableOpacity>
+                        </View>
                     ))
                 )}
 

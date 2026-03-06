@@ -21,6 +21,7 @@ import { getAccounts } from '../database/accountService';
 import { checkAndAwardAchievements } from '../services/gamification';
 import { Account, Category, Merchant, TransactionType } from '../types';
 import { toISODateString } from '../utils';
+import { useLanguage } from '../context/LanguageContext';
 
 export const AddTransactionScreen: React.FC = () => {
     const navigation = useNavigation<any>();
@@ -37,6 +38,7 @@ export const AddTransactionScreen: React.FC = () => {
     const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
     const [showAccounts, setShowAccounts] = useState(false);
     const [saving, setSaving] = useState(false);
+    const { t } = useLanguage();
 
     useEffect(() => {
         loadCategories();
@@ -82,13 +84,13 @@ export const AddTransactionScreen: React.FC = () => {
     };
 
     const handleSave = async () => {
-        const numAmount = parseFloat(amount);
+        const numAmount = parseFloat(amount.replace(/,/g, ''));
         if (!numAmount || numAmount <= 0) {
-            Alert.alert('Error', 'Please enter a valid amount');
+            Alert.alert('Error', t('tx.error.amount'));
             return;
         }
         if (!selectedCategory) {
-            Alert.alert('Error', 'Please select a category');
+            Alert.alert('Error', t('tx.error.category'));
             return;
         }
 
@@ -112,7 +114,7 @@ export const AddTransactionScreen: React.FC = () => {
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="close" size={28} color={Colors.textPrimary} />
                     </TouchableOpacity>
-                    <NeonText variant="title">New Transaction</NeonText>
+                    <NeonText variant="title">{t('tx.new')}</NeonText>
                     <View style={{ width: 28 }} />
                 </View>
 
@@ -127,7 +129,7 @@ export const AddTransactionScreen: React.FC = () => {
                             style={styles.typeBtnGradient}
                         >
                             <Ionicons name="arrow-up-circle" size={20} color={type === 'expense' ? Colors.textPrimary : Colors.textTertiary} />
-                            <NeonText variant="body" color={type === 'expense' ? Colors.textPrimary : Colors.textTertiary}>Expense</NeonText>
+                            <NeonText variant="body" color={type === 'expense' ? Colors.textPrimary : Colors.textTertiary}>{t('tx.type.expense')}</NeonText>
                         </LinearGradient>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -139,7 +141,7 @@ export const AddTransactionScreen: React.FC = () => {
                             style={styles.typeBtnGradient}
                         >
                             <Ionicons name="arrow-down-circle" size={20} color={type === 'income' ? Colors.textPrimary : Colors.textTertiary} />
-                            <NeonText variant="body" color={type === 'income' ? Colors.textPrimary : Colors.textTertiary}>Income</NeonText>
+                            <NeonText variant="body" color={type === 'income' ? Colors.textPrimary : Colors.textTertiary}>{t('tx.type.income')}</NeonText>
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -151,7 +153,7 @@ export const AddTransactionScreen: React.FC = () => {
                         placeholder="0.00"
                         value={amount}
                         onChangeText={setAmount}
-                        keyboardType="decimal-pad"
+                        keyboardType="numeric"
                         glowColor={type === 'expense' ? Colors.neonPink : Colors.cyberGreen}
                         containerStyle={{ flex: 1, marginBottom: 0 }}
                         style={styles.amountInput}
@@ -160,8 +162,8 @@ export const AddTransactionScreen: React.FC = () => {
 
                 {/* Merchant */}
                 <GlowInput
-                    label="Merchant"
-                    placeholder="e.g. Starbucks, Uber..."
+                    label={t('tx.merchant')}
+                    placeholder={t('tx.merchantPlaceholder')}
                     value={merchantName}
                     onChangeText={handleMerchantChange}
                     icon={<Ionicons name="storefront-outline" size={20} color={Colors.textTertiary} />}
@@ -182,7 +184,7 @@ export const AddTransactionScreen: React.FC = () => {
                 )}
 
                 {/* Category */}
-                <NeonText variant="label" style={styles.fieldLabel}>CATEGORY</NeonText>
+                <NeonText variant="label" style={styles.fieldLabel}>{t('tx.category').toUpperCase()}</NeonText>
                 <TouchableOpacity onPress={() => setShowCategories(!showCategories)}>
                     <GlassCard style={styles.categoryPicker}>
                         {selectedCategory && (
@@ -217,7 +219,7 @@ export const AddTransactionScreen: React.FC = () => {
                 )}
 
                 {/* Account */}
-                <NeonText variant="label" style={styles.fieldLabel}>ACCOUNT</NeonText>
+                <NeonText variant="label" style={styles.fieldLabel}>{t('tx.account').toUpperCase()}</NeonText>
                 <TouchableOpacity onPress={() => setShowAccounts(!showAccounts)}>
                     <GlassCard style={styles.categoryPicker}>
                         {selectedAccount ? (
@@ -258,7 +260,7 @@ export const AddTransactionScreen: React.FC = () => {
 
                 {/* Date */}
                 <GlowInput
-                    label="Date"
+                    label={t('tx.date')}
                     placeholder="YYYY-MM-DD"
                     value={date}
                     onChangeText={setDate}
@@ -267,8 +269,8 @@ export const AddTransactionScreen: React.FC = () => {
 
                 {/* Note */}
                 <GlowInput
-                    label="Note (optional)"
-                    placeholder="Add a note..."
+                    label={t('tx.note')}
+                    placeholder="..."
                     value={note}
                     onChangeText={setNote}
                     icon={<Ionicons name="document-text-outline" size={20} color={Colors.textTertiary} />}
@@ -276,7 +278,7 @@ export const AddTransactionScreen: React.FC = () => {
 
                 {/* Save Button */}
                 <NeonButton
-                    title={saving ? 'Saving...' : `Save ${type === 'expense' ? 'Expense' : 'Income'}`}
+                    title={saving ? '...' : (type === 'expense' ? t('tx.saveExpense') : t('tx.saveIncome'))}
                     onPress={handleSave}
                     variant={type === 'expense' ? 'danger' : 'primary'}
                     size="lg"

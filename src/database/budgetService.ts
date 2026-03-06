@@ -6,12 +6,15 @@ export const getBudgets = async (month?: string): Promise<Budget[]> => {
     const db = await getDatabase();
     const m = month || getMonthKey();
     return await db.getAllAsync<Budget>(
-        `SELECT b.*, c.name as category_name, c.icon as category_icon, c.color as category_color,
-     COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.category_id = b.category_id AND t.type = 'expense' AND t.date LIKE ?), 0) as spent
-     FROM budgets b
-     LEFT JOIN categories c ON b.category_id = c.id
-     WHERE b.month = ?
-     ORDER BY c.name ASC`,
+        `SELECT b.*, 
+            COALESCE(c.name, 'All Expenses') as category_name, 
+            COALESCE(c.icon, 'apps-outline') as category_icon, 
+            COALESCE(c.color, '#00D4FF') as category_color,
+            COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE (b.category_id = -1 OR t.category_id = b.category_id) AND t.type = 'expense' AND t.date LIKE ?), 0) as spent
+         FROM budgets b
+         LEFT JOIN categories c ON b.category_id = c.id
+         WHERE b.month = ?
+         ORDER BY c.name ASC`,
         [`${m}%`, m]
     );
 };
