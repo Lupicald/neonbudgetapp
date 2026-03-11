@@ -93,3 +93,46 @@ export const getAchievements = async (): Promise<Achievement[]> => {
 export const getStreak = async (): Promise<number> => {
     return await calculateStreak();
 };
+
+export interface LevelData {
+    level: number;
+    xp: number;           // total transactions so far
+    xpForThisLevel: number; // tx count at start of current level
+    xpNeeded: number;     // tx needed to reach next level
+}
+
+// Levels 1-5: 2 tx per level, Level 6+: 3 tx per level
+export const getLevelData = async (): Promise<LevelData> => {
+    const db = await getDatabase();
+    const result = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM transactions'
+    );
+    const totalTx = result?.count ?? 0;
+
+    // Calculate level from total transactions
+    // First 5 levels need 2 tx each = 10 tx total to reach level 6
+    const PHASE1_LEVELS = 5;
+    const PHASE1_TX_PER_LEVEL = 2;
+    const PHASE1_TOTAL = PHASE1_LEVELS * PHASE1_TX_PER_LEVEL; // 10
+    const PHASE2_TX_PER_LEVEL = 3;
+
+    let level = 1;
+    let xpForThisLevel = 0;
+    let xpNeeded = PHASE1_TX_PER_LEVEL;
+
+    if (totalTx < PHASE1_TOTAL) {
+        // In phase 1
+        level = 1 + Math.floor(totalTx / PHASE1_TX_PER_LEVEL);
+        xpForThisLevel = (level - 1) * PHASE1_TX_PER_LEVEL;
+        xpNeeded = PHASE1_TX_PER_LEVEL;
+    } else {
+        // In phase 2
+        const phase2Tx = totalTx - PHASE1_TOTAL;
+        const phase2Level = Math.floor(phase2Tx / PHASE2_TX_PER_LEVEL);
+        level = PHASE1_LEVELS + 1 + phase2Level;
+        xpForThisLevel = PHASE1_TOTAL + phase2Level * PHASE2_TX_PER_LEVEL;
+        xpNeeded = PHASE2_TX_PER_LEVEL;
+    }
+
+    return { level, xp: totalTx, xpForThisLevel, xpNeeded };
+};

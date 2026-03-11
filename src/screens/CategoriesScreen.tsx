@@ -126,16 +126,33 @@ export const CategoriesScreen: React.FC = () => {
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => handleEdit(item)} onLongPress={() => handleDelete(item)}>
-                        <GlassCard style={styles.catCard}>
-                            <CategoryIcon icon={item.icon} color={item.color} size={40} />
-                            <View style={{ flex: 1 }}>
-                                <NeonText variant="body">{item.name}</NeonText>
-                                {item.is_default ? <NeonText variant="caption" color={Colors.textMuted}>Default</NeonText> : null}
+                    <GlassCard style={styles.catCard}>
+                        <CategoryIcon icon={item.icon} color={item.color} size={40} />
+                        <View style={{ flex: 1 }}>
+                            <NeonText variant="body">{item.name}</NeonText>
+                            {item.is_default ? <NeonText variant="caption" color={Colors.textMuted}>Default</NeonText> : null}
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => handleEdit(item)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            style={styles.actionBtn}
+                        >
+                            <Ionicons name="pencil-outline" size={18} color={Colors.electricBlue} />
+                        </TouchableOpacity>
+                        {item.is_default ? (
+                            <View style={styles.actionBtn}>
+                                <Ionicons name="lock-closed-outline" size={18} color={Colors.textMuted} />
                             </View>
-                            <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
-                        </GlassCard>
-                    </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity
+                                onPress={() => handleDelete(item)}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                style={styles.actionBtn}
+                            >
+                                <Ionicons name="trash-outline" size={18} color={Colors.neonPink} />
+                            </TouchableOpacity>
+                        )}
+                    </GlassCard>
                 )}
             />
         </View>
@@ -154,4 +171,5 @@ const styles = StyleSheet.create({
     colorBtnSelected: { borderColor: Colors.textPrimary, transform: [{ scale: 1.2 }] },
     list: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
     catCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.sm, paddingVertical: Spacing.md },
+    actionBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
 });

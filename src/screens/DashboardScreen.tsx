@@ -13,14 +13,14 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
-import { GlassCard, NeonText, ProgressBar, FadeIn } from '../components';
+import { GlassCard, NeonText, ProgressBar, FadeIn, SpendPlannerModal } from '../components';
 import { Colors, Spacing, BorderRadius, Shadows, FontSize, FontWeight } from '../theme';
 import { formatCurrency, getMonthKey } from '../utils';
 import { getAccounts, getTotalBalance } from '../database/accountService';
 import { getMonthlyTotal, getSpendingByCategory, getDailySpending } from '../database/transactionService';
 import { generateProjection, getNextEvent, getProjectionChartData } from '../services/projectionEngine';
 import { calculateHealthScore } from '../services/healthScore';
-import { getStreak } from '../services/gamification';
+import { getStreak, getLevelData, LevelData } from '../services/gamification';
 import { ProjectedEvent, FinancialHealthScore, Account } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -41,12 +41,14 @@ export const DashboardScreen: React.FC = () => {
     const [dailySpending, setDailySpending] = useState<{ date: string; total: number }[]>([]);
     const [healthScore, setHealthScore] = useState<FinancialHealthScore>({ score: 100, label: 'Excellent', color: Colors.cyberGreen });
     const [streak, setStreak] = useState(0);
+    const [levelData, setLevelData] = useState<LevelData>({ level: 1, xp: 0, xpForThisLevel: 0, xpNeeded: 2 });
+    const [plannerVisible, setPlannerVisible] = useState(false);
     const { t } = useLanguage();
 
     const loadData = useCallback(async () => {
         try {
             const month = getMonthKey();
-            const [accs, totalBal, exp, inc, ni, ne, cats, proj, daily, hs, st] = await Promise.all([
+            const [accs, totalBal, exp, inc, ni, ne, cats, proj, daily, hs, st, lvl] = await Promise.all([
                 getAccounts(),
                 getTotalBalance(),
                 getMonthlyTotal(month, 'expense'),
@@ -58,6 +60,7 @@ export const DashboardScreen: React.FC = () => {
                 getDailySpending(month),
                 calculateHealthScore(),
                 getStreak(),
+                getLevelData(),
             ]);
             setAccounts(accs);
             setBalance(totalBal);
@@ -70,6 +73,7 @@ export const DashboardScreen: React.FC = () => {
             setDailySpending(daily);
             setHealthScore(hs);
             setStreak(st);
+            setLevelData(lvl);
         } catch (error) {
             console.log('Dashboard load error:', error);
         }
@@ -173,24 +177,60 @@ export const DashboardScreen: React.FC = () => {
                             <NeonText variant="caption" color={Colors.textTertiary}>{greeting} 👋</NeonText>
                             <NeonText variant="title" color={Colors.textPrimary}>{t('dashboard.title')}</NeonText>
                         </View>
-                        <TouchableOpacity
-                            style={styles.scoreBadge}
-                            onPress={() => navigation.navigate('Analytics')}
-                        >
-                            <LinearGradient
-                                colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                                style={styles.scoreBadgeGrad}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
+                        <View style={styles.badgesRow}>
+                            {/* Level Badge */}
+                            <TouchableOpacity
+                                style={styles.levelBadge}
+                                onPress={() => navigation.navigate('Settings', { screen: 'Achievements' })}
+                                activeOpacity={0.8}
                             >
-                                <NeonText variant="subtitle" color="#fff" style={{ fontWeight: '800' }}>
-                                    {healthScore.score}
-                                </NeonText>
-                                <NeonText variant="caption" color="rgba(255,255,255,0.75)" style={{ fontSize: 9 }}>
-                                    SCORE
-                                </NeonText>
-                            </LinearGradient>
-                        </TouchableOpacity>
+                                <LinearGradient
+                                    colors={['rgba(0,212,255,0.2)', 'rgba(191,90,242,0.2)'] as [string, string]}
+                                    style={styles.levelBadgeGrad}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                >
+                                    <NeonText variant="caption" color={Colors.electricBlue} style={{ fontSize: 8, letterSpacing: 0.5 }}>LVL</NeonText>
+                                    <NeonText variant="subtitle" color={Colors.electricBlue} style={{ fontWeight: '800', lineHeight: 22 }}>
+                                        {levelData.level}
+                                    </NeonText>
+                                    {/* XP progress bar */}
+                                    <View style={styles.xpBarTrack}>
+                                        <View
+                                            style={[
+                                                styles.xpBarFill,
+                                                {
+                                                    width: `${Math.round(((levelData.xp - levelData.xpForThisLevel) / levelData.xpNeeded) * 100)}%` as any,
+                                                }
+                                            ]}
+                                        />
+                                    </View>
+                                    <NeonText variant="caption" color="rgba(255,255,255,0.4)" style={{ fontSize: 7 }}>
+                                        {levelData.xp - levelData.xpForThisLevel}/{levelData.xpNeeded}
+                                    </NeonText>
+                                </LinearGradient>
+                            </TouchableOpacity>
+
+                            {/* Score Badge */}
+                            <TouchableOpacity
+                                style={styles.scoreBadge}
+                                onPress={() => navigation.navigate('Analytics')}
+                            >
+                                <LinearGradient
+                                    colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
+                                    style={styles.scoreBadgeGrad}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                >
+                                    <NeonText variant="subtitle" color="#fff" style={{ fontWeight: '800' }}>
+                                        {healthScore.score}
+                                    </NeonText>
+                                    <NeonText variant="caption" color="rgba(255,255,255,0.75)" style={{ fontSize: 9 }}>
+                                        SCORE
+                                    </NeonText>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </FadeIn>
 
@@ -253,7 +293,7 @@ export const DashboardScreen: React.FC = () => {
                         {[
                             { icon: 'add-circle', label: t('dashboard.actions.add'), color: Colors.neonPurple, glow: Colors.glowPurple, action: () => navigation.navigate('AddTransaction') },
                             { icon: 'swap-horizontal', label: t('dashboard.actions.transfer'), color: Colors.electricBlue, glow: Colors.glowBlue, action: () => navigation.navigate('Accounts') },
-                            { icon: 'calendar-number-outline', label: 'Planner', color: Colors.cyberGreen, glow: Colors.glowGreen, action: () => navigation.navigate('Settings', { screen: 'PlannedBudget' }) },
+                            { icon: 'bulb-outline', label: 'Planner', color: Colors.cyberGreen, glow: Colors.glowGreen, action: () => setPlannerVisible(true) },
                             { icon: 'analytics', label: t('dashboard.actions.analytics'), color: Colors.neonOrange, glow: Colors.glowOrange, action: () => navigation.navigate('Analytics') },
                         ].map((item, idx) => (
                             <TouchableOpacity
@@ -504,6 +544,12 @@ export const DashboardScreen: React.FC = () => {
                     <Ionicons name="add" size={30} color="#fff" />
                 </LinearGradient>
             </TouchableOpacity>
+
+            {/* ── SPEND PLANNER MODAL ── */}
+            <SpendPlannerModal
+                visible={plannerVisible}
+                onClose={() => setPlannerVisible(false)}
+            />
         </View>
     );
 };
@@ -541,6 +587,41 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: Spacing.xl,
         paddingTop: Spacing.xxl,
+    },
+    badgesRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+    },
+    levelBadge: {
+        shadowColor: Colors.electricBlue,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.5,
+        shadowRadius: 12,
+        elevation: 8,
+    },
+    levelBadgeGrad: {
+        width: 52,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 6,
+        paddingHorizontal: 4,
+        borderWidth: 1,
+        borderColor: 'rgba(0,212,255,0.25)',
+        gap: 2,
+    },
+    xpBarTrack: {
+        width: 36,
+        height: 3,
+        borderRadius: 2,
+        backgroundColor: 'rgba(255,255,255,0.12)',
+        overflow: 'hidden',
+    },
+    xpBarFill: {
+        height: 3,
+        borderRadius: 2,
+        backgroundColor: Colors.electricBlue,
     },
     scoreBadge: {
         ...Shadows.glowPurple,

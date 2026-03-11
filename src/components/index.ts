@@ -5,3 +5,4 @@ export { GlowInput } from './GlowInput';
 export { ProgressBar } from './ProgressBar';
 export { CategoryIcon } from './CategoryIcon';
 export { FadeIn } from './FadeIn';
+export { SpendPlannerModal } from './SpendPlannerModal';

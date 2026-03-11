@@ -40,10 +40,36 @@ export const AddTransactionScreen: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const { t } = useLanguage();
 
+    const route = useRoute<any>();
+
     useEffect(() => {
         loadCategories();
         loadAccounts();
     }, []);
+
+    // Apply prefill params from Spend Planner after data loads
+    useEffect(() => {
+        const params = route.params as any;
+        if (!params) return;
+        if (params.prefillAmount) setAmount(String(params.prefillAmount));
+        if (params.prefillMerchant) setMerchantName(String(params.prefillMerchant));
+    }, [route.params]);
+
+    // Apply category prefill once categories are loaded
+    useEffect(() => {
+        const params = route.params as any;
+        if (!params?.prefillCategoryId || categories.length === 0) return;
+        const cat = categories.find(c => c.id === params.prefillCategoryId);
+        if (cat) setSelectedCategory(cat);
+    }, [categories, route.params]);
+
+    // Apply account prefill once accounts are loaded
+    useEffect(() => {
+        const params = route.params as any;
+        if (!params?.prefillAccountId || accounts.length === 0) return;
+        const acc = accounts.find(a => a.id === params.prefillAccountId);
+        if (acc) setSelectedAccount(acc);
+    }, [accounts, route.params]);
 
     const loadCategories = async () => {
         const cats = await getCategories();
