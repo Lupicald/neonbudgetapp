@@ -88,6 +88,29 @@ export const CREATE_TABLES_SQL = [
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );`,
+
+  `CREATE TABLE IF NOT EXISTS planned_incomes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    amount REAL NOT NULL,
+    expected_date TEXT NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS planned_expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    planned_income_id INTEGER,
+    name TEXT NOT NULL,
+    amount REAL NOT NULL,
+    category_id INTEGER,
+    planned_date TEXT NOT NULL,
+    is_completed INTEGER NOT NULL DEFAULT 0,
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (planned_income_id) REFERENCES planned_incomes(id) ON DELETE SET NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+  );`,
 ];
 
 export const DEFAULT_ACCOUNTS = [

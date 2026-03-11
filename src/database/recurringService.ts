@@ -1,7 +1,7 @@
 import { getDatabase } from './database';
 import { RecurringItem, RecurringFrequency, TransactionType } from '../types';
 import { addTransaction } from './transactionService';
-import { addDays, addWeeks, addMonths, addYears, format, nextDay, setDate, parseISO } from 'date-fns';
+import { addDays, addWeeks, addMonths, addYears, format, nextDay, setDate, parseISO, getDaysInMonth } from 'date-fns';
 
 export const getRecurringItems = async (type?: TransactionType): Promise<RecurringItem[]> => {
     const db = await getDatabase();
@@ -112,10 +112,17 @@ export const calculateNextDate = (
     fromDate: string
 ): string => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // normalize to midnight for fair comparison
     let date = parseISO(fromDate);
 
+    // For monthly with a specific day, anchor to that day in the fromDate's month first,
+    // so e.g. setting day=28 on March 10 returns March 28, not April 28
+    if (frequency === 'monthly' && dayOfMonth !== null) {
+        date = setDate(date, Math.min(dayOfMonth, getDaysInMonth(date)));
+    }
+
     // Find the next occurrence that is >= today
-    const maxIterations = 400; // Safety limit
+    const maxIterations = 400;
     let i = 0;
     while (date < today && i < maxIterations) {
         date = getNextOccurrence(date, frequency, intervalDays, dayOfWeek, dayOfMonth);
@@ -169,11 +176,8 @@ const getNextOccurrence = (
             return addWeeks(current, 2);
         case 'monthly':
             if (dayOfMonth !== null) {
-                let next = addMonths(current, 1);
-                try {
-                    next = setDate(next, Math.min(dayOfMonth, 28));
-                } catch { }
-                return next;
+                const next = addMonths(current, 1);
+                return setDate(next, Math.min(dayOfMonth, getDaysInMonth(next)));
             }
             return addMonths(current, 1);
         case 'yearly':

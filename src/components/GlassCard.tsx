@@ -23,17 +23,17 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     const glowShadow = glowColor
         ? {
             shadowColor: glowColor,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.55,
-            shadowRadius: 20,
-            elevation: 12,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.20,
+            shadowRadius: 16,
+            elevation: 8,
         }
         : Shadows.card;
 
     if (hero) {
         return (
             <LinearGradient
-                colors={['#1A0A4A', '#0A1A40', '#050A1A'] as [string, string, string]}
+                colors={['#1E1230', '#141414', '#0C0C0C'] as [string, string, string]}
                 style={[
                     styles.card,
                     styles.heroCard,
@@ -52,7 +52,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     if (gradient) {
         return (
             <LinearGradient
-                colors={Colors.gradientCard as [string, string]}
+                colors={['#1E1E1E', '#161616'] as [string, string]}
                 style={[
                     styles.card,
                     !noBorder && styles.border,
@@ -83,7 +83,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: Colors.backgroundCard,
+        backgroundColor: '#181818',
         borderRadius: BorderRadius.lg,
         padding: Spacing.lg,
         overflow: 'hidden',
@@ -94,10 +94,10 @@ const styles = StyleSheet.create({
     },
     border: {
         borderWidth: 1,
-        borderColor: 'rgba(0, 212, 255, 0.14)',
+        borderColor: 'rgba(255, 255, 255, 0.07)',
     },
     heroBorder: {
         borderWidth: 1,
-        borderColor: 'rgba(123, 47, 255, 0.35)',
+        borderColor: 'rgba(124, 58, 237, 0.20)',
     },
 });

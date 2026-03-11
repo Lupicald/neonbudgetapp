@@ -61,7 +61,23 @@ export const exportToCSV = async (): Promise<string> => {
         rows += `${escapeCSV(fromName)},-${Math.abs(tr.amount)},MXN,${escapeCSV(fromName + ' Transfer Out')},${note},${date},false,null,Corrección de equilibrio,,0xff607d8b,charts.png,,,\n`;
     }
 
-    const csv = header + rows;
+    // ── Recurring items section ──────────────────────────────────────────────
+    const recurringItems = await db.getAllAsync<any>(
+        `SELECT r.*, c.name as category_name FROM recurring_items r LEFT JOIN categories c ON r.category_id = c.id ORDER BY r.type, r.name`
+    );
+
+    let recurringSection = '\n#RECURRING_ITEMS\n';
+    recurringSection += 'type,name,amount,frequency,interval_days,day_of_week,day_of_month,start_date,next_date,is_active,category_name\n';
+    for (const r of recurringItems) {
+        recurringSection += [
+            r.type, escapeCSV(r.name), r.amount, r.frequency,
+            r.interval_days, r.day_of_week ?? '', r.day_of_month ?? '',
+            r.start_date, r.next_date, r.is_active,
+            escapeCSV(r.category_name || 'Other'),
+        ].join(',') + '\n';
+    }
+
+    const csv = header + rows + recurringSection;
 
     // Save to file
     const filename = `neonbudget-${new Date().toISOString().split('T')[0]}.csv`;
@@ -248,6 +264,45 @@ export const importFromCSV = async (csvContent: string): Promise<{ imported: num
             await db.runAsync(`UPDATE accounts SET balance = ? WHERE id = ?`, [total, acc.id]);
         }
     } catch (e) { console.log('Error recalculating balances:', e); }
+
+    // ── Import recurring items if section present ────────────────────────────
+    try {
+        const recurringMarker = csvContent.indexOf('#RECURRING_ITEMS');
+        if (recurringMarker !== -1) {
+            const recurringSection = csvContent.slice(recurringMarker).split('\n').slice(2); // skip marker + header
+            for (const line of recurringSection) {
+                const t = line.trim();
+                if (!t || t.startsWith('#')) continue;
+                const fields = parseCSVLine(t);
+                if (fields.length < 11) continue;
+                const [rType, rName, rAmount, rFreq, rInterval, rDow, rDom, rStart, rNext, rActive, rCatName] = fields;
+                if (!rName || !rAmount) continue;
+
+                // Find or create category
+                let catId = 1;
+                const catKey = (rCatName || 'Other').toLowerCase();
+                if (categoryCache.has(catKey)) {
+                    catId = categoryCache.get(catKey)!;
+                } else {
+                    const newCat = await db.getFirstAsync<{ id: number }>('SELECT id FROM categories WHERE name = ? COLLATE NOCASE', [rCatName]);
+                    catId = newCat?.id || 1;
+                }
+
+                await db.runAsync(
+                    `INSERT OR IGNORE INTO recurring_items (type, name, amount, category_id, frequency, interval_days, day_of_week, day_of_month, start_date, next_date, is_active)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        rType || 'expense', rName.trim(), parseFloat(rAmount) || 0, catId,
+                        rFreq || 'monthly', parseInt(rInterval) || 0,
+                        rDow ? parseInt(rDow) : null, rDom ? parseInt(rDom) : null,
+                        rStart || new Date().toISOString().split('T')[0],
+                        rNext || new Date().toISOString().split('T')[0],
+                        parseInt(rActive) || 1,
+                    ]
+                );
+            }
+        }
+    } catch (e) { console.log('Recurring import error:', e); }
 
     return { imported, skipped, errorMsg: firstError };
 };

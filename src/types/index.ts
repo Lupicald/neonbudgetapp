@@ -119,3 +119,27 @@ export interface FinancialHealthScore {
     label: string;
     color: string;
 }
+
+export interface PlannedIncome {
+    id: number;
+    name: string;
+    amount: number;
+    expected_date: string; // YYYY-MM-DD
+    note: string;
+    created_at: string;
+}
+
+export interface PlannedExpense {
+    id: number;
+    planned_income_id: number | null;
+    name: string;
+    amount: number;
+    category_id: number;
+    category_name?: string;
+    category_icon?: string;
+    category_color?: string;
+    planned_date: string; // YYYY-MM-DD
+    is_completed: number; // 0 or 1
+    note: string;
+    created_at: string;
+}

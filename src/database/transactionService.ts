@@ -180,6 +180,26 @@ export const getMonthlyTotal = async (month: string, type: TransactionType): Pro
     return result?.total || 0;
 };
 
+// Returns income and expense totals for each of the supplied YYYY-MM month keys
+export const getMonthlyTotalsRange = async (
+    months: string[]
+): Promise<{ month: string; income: number; expense: number }[]> => {
+    const db = await getDatabase();
+    const results: { month: string; income: number; expense: number }[] = [];
+    for (const m of months) {
+        const inc = await db.getFirstAsync<{ total: number }>(
+            `SELECT COALESCE(SUM(amount),0) as total FROM transactions WHERE type='income' AND date LIKE ?`,
+            [`${m}%`]
+        );
+        const exp = await db.getFirstAsync<{ total: number }>(
+            `SELECT COALESCE(SUM(amount),0) as total FROM transactions WHERE type='expense' AND date LIKE ?`,
+            [`${m}%`]
+        );
+        results.push({ month: m, income: inc?.total || 0, expense: exp?.total || 0 });
+    }
+    return results;
+};
+
 export const getDailySpending = async (month: string): Promise<{ date: string; total: number }[]> => {
     const db = await getDatabase();
     return await db.getAllAsync(

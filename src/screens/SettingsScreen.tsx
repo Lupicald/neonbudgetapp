@@ -184,11 +184,10 @@ export const SettingsScreen: React.FC = () => {
                 <GlassCard style={styles.navSection}>
                     {navItem('Categories', 'grid-outline', 'CategoriesManage')}
                     {navItem('Merchants', 'storefront-outline', 'MerchantsManage')}
-                    {navItem('Recurring Income', 'arrow-down-circle-outline', 'RecurringIncome')}
-                    {navItem('Recurring Expenses', 'arrow-up-circle-outline', 'RecurringExpenses')}
                     {navItem('Budgets', 'pie-chart-outline', 'BudgetsManage')}
                     {navItem('Goals', 'trophy-outline', 'GoalsManage')}
                     {navItem('Achievements', 'medal-outline', 'Achievements')}
+                    {navItem('Calendar', 'calendar-outline', 'Calendar')}
                     {navItem('Timeline', 'time-outline', 'Timeline')}
                     {navItem('Transfers', 'swap-horizontal-outline', 'Transfers')}
 

@@ -1,73 +1,75 @@
+// Premium minimal palette — clean dark with precise accent touches
 export const Colors = {
-  // Backgrounds – deep dark navy (fintech/crypto feel)
-  background: '#050A1A',
-  backgroundLight: '#080D25',
-  backgroundCard: '#0C1535',
-  backgroundCardLight: '#101C40',
-  surface: '#0C1535',
-  surfaceLight: '#101C40',
+  // Backgrounds — true dark charcoal, not navy
+  background: '#0C0C0C',
+  backgroundLight: '#131313',
+  backgroundCard: '#181818',
+  backgroundCardLight: '#202020',
+  surface: '#181818',
+  surfaceLight: '#202020',
 
-  // Neon accents – vivid & electric
-  neonPurple: '#7B2FFF',
-  neonPurpleLight: '#A56DFF',
-  neonPurpleDark: '#5A1FCC',
-  electricBlue: '#00D4FF',
-  electricBlueLight: '#4DE8FF',
-  electricBlueDark: '#0099CC',
-  cyberGreen: '#00FF88',
-  cyberGreenLight: '#4DFFAA',
-  cyberGreenDark: '#00CC6A',
-  neonPink: '#FF2D6E',
-  neonPinkLight: '#FF6E99',
-  neonPinkDark: '#CC1E52',
-  neonOrange: '#FF8C00',
-  neonYellow: '#FFD60A',
+  // Accent system — used sparingly, not on every element
+  neonPurple: '#7C3AED',        // rare accent, hero gradient only
+  neonPurpleLight: '#A78BFA',
+  neonPurpleDark: '#5B21B6',
+  electricBlue: '#3B82F6',      // interactive elements, links
+  electricBlueLight: '#60A5FA',
+  electricBlueDark: '#1D4ED8',
+  cyberGreen: '#10B981',        // income, positive balance
+  cyberGreenLight: '#34D399',
+  cyberGreenDark: '#059669',
+  neonPink: '#EF4444',          // expense, negative balance
+  neonPinkLight: '#F87171',
+  neonPinkDark: '#DC2626',
+  neonOrange: '#F59E0B',        // warnings
+  neonYellow: '#FCD34D',
 
-  // Text
-  textPrimary: '#FFFFFF',
-  textSecondary: 'rgba(255, 255, 255, 0.65)',
-  textTertiary: 'rgba(255, 255, 255, 0.35)',
-  textMuted: 'rgba(255, 255, 255, 0.15)',
+  // Text — clean white/gray hierarchy
+  textPrimary: '#F9FAFB',
+  textSecondary: 'rgba(249, 250, 251, 0.60)',
+  textTertiary: 'rgba(249, 250, 251, 0.35)',
+  textMuted: 'rgba(249, 250, 251, 0.18)',
 
   // Semantic
-  income: '#00FF88',
-  expense: '#FF2D6E',
-  warning: '#FF8C00',
-  danger: '#FF2D6E',
-  success: '#00FF88',
+  income: '#10B981',
+  expense: '#EF4444',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  success: '#10B981',
 
-  // Borders – subtle glass edges
-  border: 'rgba(255, 255, 255, 0.07)',
-  borderLight: 'rgba(0, 212, 255, 0.18)',
-  borderNeon: 'rgba(123, 47, 255, 0.4)',
+  // Borders — barely visible, professional
+  border: 'rgba(255, 255, 255, 0.06)',
+  borderLight: 'rgba(255, 255, 255, 0.11)',
+  borderNeon: 'rgba(124, 58, 237, 0.22)',
 
-  // Gradients
-  gradientPurple: ['#7B2FFF', '#4415CC'] as string[],
-  gradientPurpleBlue: ['#7B2FFF', '#00D4FF'] as string[],
-  gradientBlue: ['#00D4FF', '#0066FF'] as string[],
-  gradientGreen: ['#00FF88', '#00CC6A'] as string[],
-  gradientPink: ['#FF2D6E', '#CC1E52'] as string[],
-  gradientDark: ['#0C1535', '#050A1A'] as string[],
-  gradientCard: ['#101C40', '#0C1535'] as string[],
-  gradientHero: ['#1A0A4A', '#050A1A'] as string[],
-  gradientIncome: ['#00FF88', '#00D4FF'] as string[],
-  gradientExpense: ['#FF2D6E', '#FF8C00'] as string[],
+  // Gradients — subtle, not vivid
+  gradientPurple: ['#7C3AED', '#5B21B6'] as string[],
+  gradientPurpleBlue: ['#7C3AED', '#3B82F6'] as string[],
+  gradientBlue: ['#3B82F6', '#60A5FA'] as string[],
+  gradientGreen: ['#10B981', '#059669'] as string[],
+  gradientPink: ['#EF4444', '#DC2626'] as string[],
+  gradientDark: ['#202020', '#0C0C0C'] as string[],
+  gradientCard: ['#1E1E1E', '#161616'] as string[],
+  gradientHero: ['#1A103A', '#0C0C0C'] as string[],
+  gradientIncome: ['#10B981', '#3B82F6'] as string[],
+  gradientExpense: ['#EF4444', '#F59E0B'] as string[],
+  gradientPlanned: ['#7C3AED', '#3B82F6'] as string[],
 
-  // Glow shadows – vivid neon glow
-  glowPurple: '#7B2FFF',
-  glowBlue: '#00D4FF',
-  glowGreen: '#00FF88',
-  glowPink: '#FF2D6E',
-  glowOrange: '#FF8C00',
+  // Glow — used only on key numbers, not decorative
+  glowPurple: '#7C3AED',
+  glowBlue: '#3B82F6',
+  glowGreen: '#10B981',
+  glowPink: '#EF4444',
+  glowOrange: '#F59E0B',
 
   // Tab bar
-  tabBarBackground: '#080D25',
-  tabBarActive: '#00D4FF',
-  tabBarInactive: 'rgba(255, 255, 255, 0.3)',
+  tabBarBackground: '#111111',
+  tabBarActive: '#10B981',
+  tabBarInactive: 'rgba(249, 250, 251, 0.28)',
 };
 
 export const CategoryColors = [
-  '#FF2D6E', '#00D4FF', '#00FF88', '#FF8C00', '#FFD60A',
-  '#7B2FFF', '#A56DFF', '#4DE8FF', '#FF6E99', '#8E8E93',
-  '#4DFFAA', '#FFB340', '#D580FF', '#0066FF', '#CC1E52'
+  '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#FCD34D',
+  '#7C3AED', '#8B5CF6', '#60A5FA', '#F87171', '#6B7280',
+  '#34D399', '#FCA5A5', '#A78BFA', '#1D4ED8', '#DC2626',
 ];
