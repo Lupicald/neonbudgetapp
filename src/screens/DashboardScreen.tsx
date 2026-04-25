@@ -1,817 +1,405 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-    View,
-    ScrollView,
-    StyleSheet,
-    Dimensions,
-    TouchableOpacity,
-    RefreshControl,
-    Platform,
-    Animated,
+  View, ScrollView, Text, TouchableOpacity, StyleSheet, RefreshControl, Linking,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LineChart, BarChart } from 'react-native-chart-kit';
-import { LinearGradient } from 'expo-linear-gradient';
-import { GlassCard, NeonText, ProgressBar, FadeIn, SpendPlannerModal } from '../components';
-import { Colors, Spacing, BorderRadius, Shadows, FontSize, FontWeight } from '../theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Card, HeroCard, Amount, Ring, Progress, AreaChart,
+  SectionHeader, CatAvatar,
+} from '../components/SumariPrimitives';
+import { Colors, Spacing, BorderRadius } from '../theme';
 import { formatCurrency, getMonthKey } from '../utils';
-import { getAccounts, getTotalBalance } from '../database/accountService';
-import { getMonthlyTotal, getSpendingByCategory, getDailySpending } from '../database/transactionService';
-import { generateProjection, getNextEvent, getProjectionChartData } from '../services/projectionEngine';
+import { getTotalBalance } from '../database/accountService';
+import { getMonthlyTotal, getTransactions } from '../database/transactionService';
+import { getSetting } from '../database/settingsService';
+import { getNextEvent, getProjectionChartData } from '../services/projectionEngine';
 import { calculateHealthScore } from '../services/healthScore';
 import { getStreak, getLevelData, LevelData } from '../services/gamification';
-import { ProjectedEvent, FinancialHealthScore, Account } from '../types';
-import { useLanguage } from '../context/LanguageContext';
+import { getBudgets } from '../database/budgetService';
+import { getGoals } from '../database/goalService';
+import { Budget, Goal, Transaction, FinancialHealthScore, ProjectedEvent } from '../types';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CHART_WIDTH = SCREEN_WIDTH - 48;
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 export const DashboardScreen: React.FC = () => {
-    const navigation = useNavigation<any>();
-    const [refreshing, setRefreshing] = useState(false);
-    const [balance, setBalance] = useState(0);
-    const [accounts, setAccounts] = useState<Account[]>([]);
-    const [monthlyExpense, setMonthlyExpense] = useState(0);
-    const [monthlyIncome, setMonthlyIncome] = useState(0);
-    const [nextIncome, setNextIncome] = useState<ProjectedEvent | null>(null);
-    const [nextExpense, setNextExpense] = useState<ProjectedEvent | null>(null);
-    const [categorySpending, setCategorySpending] = useState<any[]>([]);
-    const [projectionData, setProjectionData] = useState<{ labels: string[]; data: number[] }>({ labels: ['Now'], data: [0] });
-    const [dailySpending, setDailySpending] = useState<{ date: string; total: number }[]>([]);
-    const [healthScore, setHealthScore] = useState<FinancialHealthScore>({ score: 100, label: 'Excellent', color: Colors.cyberGreen });
-    const [streak, setStreak] = useState(0);
-    const [levelData, setLevelData] = useState<LevelData>({ level: 1, xp: 0, xpForThisLevel: 0, xpNeeded: 2 });
-    const [plannerVisible, setPlannerVisible] = useState(false);
-    const { t } = useLanguage();
+  const navigation = useNavigation<any>();
+  const [refreshing, setRefreshing] = useState(false);
+  const [balance, setBalance] = useState(0);
+  const [monthlyIncome, setMonthlyIncome] = useState(0);
+  const [monthlyExpense, setMonthlyExpense] = useState(0);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [healthScore, setHealthScore] = useState<FinancialHealthScore>({ score: 78, label: 'Good', color: Colors.accent });
+  const [streak, setStreak] = useState(0);
+  const [levelData, setLevelData] = useState<LevelData>({ level: 1, xp: 0, xpForThisLevel: 0, xpNeeded: 100 });
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [nextExpense, setNextExpense] = useState<ProjectedEvent | null>(null);
+  const [balanceSeries, setBalanceSeries] = useState<number[]>([]);
+  const [userName, setUserName] = useState('Sumari');
 
-    const loadData = useCallback(async () => {
-        try {
-            const month = getMonthKey();
-            const [accs, totalBal, exp, inc, ni, ne, cats, proj, daily, hs, st, lvl] = await Promise.all([
-                getAccounts(),
-                getTotalBalance(),
-                getMonthlyTotal(month, 'expense'),
-                getMonthlyTotal(month, 'income'),
-                getNextEvent('income'),
-                getNextEvent('expense'),
-                getSpendingByCategory(month),
-                getProjectionChartData(30),
-                getDailySpending(month),
-                calculateHealthScore(),
-                getStreak(),
-                getLevelData(),
-            ]);
-            setAccounts(accs);
-            setBalance(totalBal);
-            setMonthlyExpense(exp);
-            setMonthlyIncome(inc);
-            setNextIncome(ni);
-            setNextExpense(ne);
-            setCategorySpending(cats);
-            setProjectionData(proj.data.length > 0 ? proj : { labels: ['Now'], data: [totalBal] });
-            setDailySpending(daily);
-            setHealthScore(hs);
-            setStreak(st);
-            setLevelData(lvl);
-        } catch (error) {
-            console.log('Dashboard load error:', error);
-        }
-    }, []);
+  const loadData = useCallback(async () => {
+    try {
+      const month = getMonthKey();
+      const [totalBal, exp, inc, hs, st, lvl, bdgs, gls, txs, ne, proj, name] = await Promise.all([
+        getTotalBalance(),
+        getMonthlyTotal(month, 'expense'),
+        getMonthlyTotal(month, 'income'),
+        calculateHealthScore(),
+        getStreak(),
+        getLevelData(),
+        getBudgets(month),
+        getGoals(),
+        getTransactions(5),
+        getNextEvent('expense'),
+        getProjectionChartData(30),
+        getSetting('name'),
+      ]);
+      setBalance(totalBal);
+      setMonthlyExpense(exp);
+      setMonthlyIncome(inc);
+      setHealthScore(hs);
+      setStreak(st);
+      setLevelData(lvl);
+      setBudgets(bdgs as Budget[]);
+      setGoals(gls);
+      setTransactions(txs as Transaction[]);
+      setNextExpense(ne);
+      if (name) setUserName(name);
+      if (proj.data && proj.data.length >= 2) {
+        const step = Math.max(1, Math.floor(proj.data.length / 12));
+        const series = Array.from({ length: Math.min(12, proj.data.length) }, (_, i) =>
+          proj.data[Math.min(i * step, proj.data.length - 1)] || totalBal);
+        setBalanceSeries(series);
+      } else {
+        setBalanceSeries([totalBal, totalBal]);
+      }
+    } catch (err) {
+      console.log('HomeScreen error:', err);
+    }
+  }, []);
 
-    useFocusEffect(
-        useCallback(() => {
-            loadData();
-        }, [loadData])
-    );
+  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await loadData();
-        setRefreshing(false);
-    };
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
 
-    const topCategories = categorySpending.slice(0, 5);
-    const maxCatAmount = topCategories.reduce((m, c) => Math.max(m, c.total), 0) || 1;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
-    const lineData = {
-        labels: projectionData.labels.slice(0, 8),
-        datasets: [{ data: projectionData.data.slice(0, 8), strokeWidth: 2.5 }],
-    };
+  const budgetTotal = budgets.reduce((s, b) => s + b.monthly_limit, 0);
+  const budgetSpent = budgets.reduce((s, b) => s + (b.spent ?? 0), 0);
+  const budgetPct = budgetTotal > 0 ? Math.round((budgetSpent / budgetTotal) * 100) : 0;
+  const topGoal = goals[0] ?? null;
+  const savingsRate = monthlyIncome > 0 ? Math.round(((monthlyIncome - monthlyExpense) / monthlyIncome) * 100) : 0;
+  const curMonthLabel = MONTHS[new Date().getMonth()];
 
-    const barData = {
-        labels: dailySpending.slice(-7).map(d => d.date.slice(-2)),
-        datasets: [{ data: dailySpending.slice(-7).map(d => d.total || 0.01) }],
-    };
-
-    const lineChartConfig = {
-        backgroundColor: 'transparent',
-        backgroundGradientFrom: Colors.backgroundCard,
-        backgroundGradientTo: Colors.backgroundCard,
-        backgroundGradientFromOpacity: 0,
-        backgroundGradientToOpacity: 0,
-        decimalPlaces: 0,
-        color: (opacity = 1) => `rgba(0, 212, 255, ${opacity})`,
-        labelColor: () => Colors.textTertiary,
-        propsForDots: {
-            r: '4',
-            strokeWidth: '2',
-            stroke: Colors.electricBlue,
-            fill: Colors.electricBlue,
-        },
-        propsForBackgroundLines: {
-            strokeDasharray: '4,4',
-            stroke: 'rgba(255,255,255,0.06)',
-        },
-        fillShadowGradientFrom: Colors.electricBlue,
-        fillShadowGradientTo: 'transparent',
-        fillShadowGradientFromOpacity: 0.3,
-        fillShadowGradientToOpacity: 0,
-    };
-
-    const barChartConfig = {
-        backgroundColor: 'transparent',
-        backgroundGradientFrom: Colors.backgroundCard,
-        backgroundGradientTo: Colors.backgroundCard,
-        backgroundGradientFromOpacity: 0,
-        backgroundGradientToOpacity: 0,
-        decimalPlaces: 0,
-        color: (opacity = 1) => `rgba(123, 47, 255, ${opacity})`,
-        labelColor: () => Colors.textTertiary,
-        propsForBackgroundLines: {
-            strokeDasharray: '4,4',
-            stroke: 'rgba(255,255,255,0.06)',
-        },
-        barPercentage: 0.6,
-    };
-
-    const spendRatio = monthlyIncome > 0 ? monthlyExpense / monthlyIncome : 0;
-    const balanceColor = balance >= 0 ? Colors.cyberGreen : Colors.neonPink;
-    const balanceGlow = balance >= 0 ? Colors.glowGreen : Colors.glowPink;
-
-    const now = new Date();
-    const greeting = now.getHours() < 12 ? t('dashboard.greeting') : now.getHours() < 18 ? t('dashboard.greeting') : t('dashboard.greeting');
-
-    return (
-        <View style={styles.container}>
-            {/* Background ambient glow */}
-            <View style={styles.ambientGlow1} pointerEvents="none" />
-            <View style={styles.ambientGlow2} pointerEvents="none" />
-
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        tintColor={Colors.electricBlue}
-                        colors={[Colors.electricBlue, Colors.neonPurple]}
-                    />
-                }
-            >
-                {/* ── HEADER ── */}
-                <FadeIn>
-                    <View style={styles.header}>
-                        <View>
-                            <NeonText variant="caption" color={Colors.textTertiary}>{greeting} 👋</NeonText>
-                            <NeonText variant="title" color={Colors.textPrimary}>{t('dashboard.title')}</NeonText>
-                        </View>
-                        <View style={styles.badgesRow}>
-                            {/* Level Badge */}
-                            <TouchableOpacity
-                                style={styles.levelBadge}
-                                onPress={() => navigation.navigate('Settings', { screen: 'Achievements' })}
-                                activeOpacity={0.8}
-                            >
-                                <LinearGradient
-                                    colors={['rgba(0,212,255,0.2)', 'rgba(191,90,242,0.2)'] as [string, string]}
-                                    style={styles.levelBadgeGrad}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                >
-                                    <NeonText variant="caption" color={Colors.electricBlue} style={{ fontSize: 8, letterSpacing: 0.5 }}>LVL</NeonText>
-                                    <NeonText variant="subtitle" color={Colors.electricBlue} style={{ fontWeight: '800', lineHeight: 22 }}>
-                                        {levelData.level}
-                                    </NeonText>
-                                    {/* XP progress bar */}
-                                    <View style={styles.xpBarTrack}>
-                                        <View
-                                            style={[
-                                                styles.xpBarFill,
-                                                {
-                                                    width: `${Math.round(((levelData.xp - levelData.xpForThisLevel) / levelData.xpNeeded) * 100)}%` as any,
-                                                }
-                                            ]}
-                                        />
-                                    </View>
-                                    <NeonText variant="caption" color="rgba(255,255,255,0.4)" style={{ fontSize: 7 }}>
-                                        {levelData.xp - levelData.xpForThisLevel}/{levelData.xpNeeded}
-                                    </NeonText>
-                                </LinearGradient>
-                            </TouchableOpacity>
-
-                            {/* Score Badge */}
-                            <TouchableOpacity
-                                style={styles.scoreBadge}
-                                onPress={() => navigation.navigate('Analytics')}
-                            >
-                                <LinearGradient
-                                    colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                                    style={styles.scoreBadgeGrad}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                >
-                                    <NeonText variant="subtitle" color="#fff" style={{ fontWeight: '800' }}>
-                                        {healthScore.score}
-                                    </NeonText>
-                                    <NeonText variant="caption" color="rgba(255,255,255,0.75)" style={{ fontSize: 9 }}>
-                                        SCORE
-                                    </NeonText>
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </FadeIn>
-
-                {/* ── HERO BALANCE CARD ── */}
-                <FadeIn>
-                    <GlassCard hero style={styles.heroCard}>
-                        {/* Glow orb inside card */}
-                        <View style={styles.heroOrb} pointerEvents="none" />
-
-                        <NeonText variant="label" color="rgba(255,255,255,0.5)">{t('dashboard.totalBalance').toUpperCase()}</NeonText>
-                        <NeonText
-                            variant="hero"
-                            glow
-                            glowColor={balanceGlow}
-                            color={balanceColor}
-                            style={styles.heroBalance}
-                        >
-                            {formatCurrency(balance)}
-                        </NeonText>
-
-                        {/* Income / Expense chips */}
-                        <View style={styles.heroChips}>
-                            <View style={styles.heroChip}>
-                                <LinearGradient
-                                    colors={['rgba(0,255,136,0.15)', 'rgba(0,212,255,0.08)'] as [string, string]}
-                                    style={styles.heroChipGrad}
-                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                >
-                                    <View style={[styles.chipDot, { backgroundColor: Colors.cyberGreen }]} />
-                                    <View>
-                                        <NeonText variant="label" color={Colors.textTertiary}>{t('dashboard.income').toUpperCase()}</NeonText>
-                                        <NeonText variant="body" color={Colors.cyberGreen} style={{ fontWeight: '700' }}>
-                                            +{formatCurrency(monthlyIncome)}
-                                        </NeonText>
-                                    </View>
-                                </LinearGradient>
-                            </View>
-                            <View style={styles.heroChip}>
-                                <LinearGradient
-                                    colors={['rgba(255,45,110,0.15)', 'rgba(255,140,0,0.08)'] as [string, string]}
-                                    style={styles.heroChipGrad}
-                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                >
-                                    <View style={[styles.chipDot, { backgroundColor: Colors.neonPink }]} />
-                                    <View>
-                                        <NeonText variant="label" color={Colors.textTertiary}>{t('dashboard.expense').toUpperCase()}</NeonText>
-                                        <NeonText variant="body" color={Colors.neonPink} style={{ fontWeight: '700' }}>
-                                            -{formatCurrency(monthlyExpense)}
-                                        </NeonText>
-                                    </View>
-                                </LinearGradient>
-                            </View>
-                        </View>
-                    </GlassCard>
-                </FadeIn>
-
-                {/* ── QUICK ACTIONS ── */}
-                <FadeIn>
-                    <View style={styles.quickActions}>
-                        {[
-                            { icon: 'add-circle', label: t('dashboard.actions.add'), color: Colors.neonPurple, glow: Colors.glowPurple, action: () => navigation.navigate('AddTransaction') },
-                            { icon: 'swap-horizontal', label: t('dashboard.actions.transfer'), color: Colors.electricBlue, glow: Colors.glowBlue, action: () => navigation.navigate('Accounts') },
-                            { icon: 'bulb-outline', label: 'Planner', color: Colors.cyberGreen, glow: Colors.glowGreen, action: () => setPlannerVisible(true) },
-                            { icon: 'analytics', label: t('dashboard.actions.analytics'), color: Colors.neonOrange, glow: Colors.glowOrange, action: () => navigation.navigate('Analytics') },
-                        ].map((item, idx) => (
-                            <TouchableOpacity
-                                key={idx}
-                                style={styles.quickActionItem}
-                                onPress={item.action}
-                                activeOpacity={0.75}
-                            >
-                                <View style={[styles.quickActionIcon, {
-                                    borderColor: `${item.color}44`,
-                                    shadowColor: item.glow,
-                                    shadowOpacity: 0.6,
-                                    shadowRadius: 12,
-                                    elevation: 8,
-                                }]}>
-                                    <LinearGradient
-                                        colors={[`${item.color}30`, `${item.color}10`] as [string, string]}
-                                        style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
-                                    />
-                                    <Ionicons name={item.icon as any} size={24} color={item.color} />
-                                </View>
-                                <NeonText variant="caption" color={Colors.textSecondary} align="center" style={{ marginTop: 6 }}>
-                                    {item.label}
-                                </NeonText>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </FadeIn>
-
-                {/* ── MONTHLY SPENDING PROGRESS ── */}
-                <FadeIn>
-                    <GlassCard style={styles.section} glowColor={spendRatio > 0.9 ? Colors.glowPink : spendRatio > 0.7 ? Colors.glowOrange : Colors.glowBlue}>
-                        <View style={styles.sectionHeader}>
-                            <NeonText variant="subtitle">{t('dashboard.monthlyBudget')}</NeonText>
-                            <NeonText variant="caption" color={spendRatio > 0.9 ? Colors.neonPink : Colors.textTertiary}>
-                                {Math.round(spendRatio * 100)}% used
-                            </NeonText>
-                        </View>
-                        <ProgressBar
-                            progress={spendRatio}
-                            height={10}
-                            label="Spent"
-                            valueLabel={`${formatCurrency(monthlyExpense)} / ${formatCurrency(monthlyIncome)}`}
-                            warning={spendRatio > 0.7}
-                            danger={spendRatio > 0.9}
-                        />
-                    </GlassCard>
-                </FadeIn>
-
-                {/* ── BALANCE PROJECTION CHART ── */}
-                <FadeIn>
-                    <GlassCard style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <NeonText variant="subtitle">{t('dashboard.projection')}</NeonText>
-                            <View style={styles.chartLegend}>
-                                <View style={[styles.legendDot, { backgroundColor: Colors.electricBlue }]} />
-                                <NeonText variant="caption" color={Colors.textTertiary}>30 days</NeonText>
-                            </View>
-                        </View>
-                        {lineData.datasets[0].data.length > 1 ? (
-                            <LineChart
-                                data={lineData}
-                                width={CHART_WIDTH}
-                                height={170}
-                                chartConfig={lineChartConfig}
-                                bezier
-                                style={styles.chart}
-                                withInnerLines={false}
-                                withOuterLines={false}
-                                withVerticalLabels={true}
-                                withHorizontalLabels={true}
-                                transparent
-                            />
-                        ) : (
-                            <View style={styles.emptyChart}>
-                                <Ionicons name="analytics-outline" size={36} color={Colors.textMuted} />
-                                <NeonText variant="caption" color={Colors.textMuted} align="center">
-                                    Add recurring items to see projections
-                                </NeonText>
-                            </View>
-                        )}
-                    </GlassCard>
-                </FadeIn>
-
-                {/* ── NEXT EVENTS ── */}
-                <View style={styles.row}>
-                    <FadeIn style={{ flex: 1 }}>
-                        <GlassCard style={[styles.eventCard]} glowColor={Colors.cyberGreenDark}>
-                            <View style={[styles.eventBar, { backgroundColor: Colors.cyberGreen }]} />
-                            <Ionicons name="wallet-outline" size={18} color={Colors.cyberGreen} style={{ marginBottom: 4 }} />
-                            <NeonText variant="label" color={Colors.textTertiary}>NEXT INCOME</NeonText>
-                            {nextIncome ? (
-                                <>
-                                    <NeonText variant="body" color={Colors.textPrimary} numberOfLines={1} style={{ fontWeight: '600', marginTop: 4 }}>
-                                        {nextIncome.label}
-                                    </NeonText>
-                                    <NeonText variant="subtitle" color={Colors.cyberGreen} glow glowColor={Colors.glowGreen}>
-                                        {formatCurrency(nextIncome.amount)}
-                                    </NeonText>
-                                    <NeonText variant="caption" color={Colors.textTertiary}>{nextIncome.date}</NeonText>
-                                </>
-                            ) : (
-                                <NeonText variant="caption" color={Colors.textMuted} style={{ marginTop: 4 }}>No upcoming</NeonText>
-                            )}
-                        </GlassCard>
-                    </FadeIn>
-                    <View style={{ width: Spacing.md }} />
-                    <FadeIn style={{ flex: 1 }}>
-                        <GlassCard style={[styles.eventCard]} glowColor={Colors.neonPinkDark}>
-                            <View style={[styles.eventBar, { backgroundColor: Colors.neonPink }]} />
-                            <Ionicons name="card-outline" size={18} color={Colors.neonPink} style={{ marginBottom: 4 }} />
-                            <NeonText variant="label" color={Colors.textTertiary}>NEXT EXPENSE</NeonText>
-                            {nextExpense ? (
-                                <>
-                                    <NeonText variant="body" color={Colors.textPrimary} numberOfLines={1} style={{ fontWeight: '600', marginTop: 4 }}>
-                                        {nextExpense.label}
-                                    </NeonText>
-                                    <NeonText variant="subtitle" color={Colors.neonPink} glow glowColor={Colors.glowPink}>
-                                        {formatCurrency(nextExpense.amount)}
-                                    </NeonText>
-                                    <NeonText variant="caption" color={Colors.textTertiary}>{nextExpense.date}</NeonText>
-                                </>
-                            ) : (
-                                <NeonText variant="caption" color={Colors.textMuted} style={{ marginTop: 4 }}>No upcoming</NeonText>
-                            )}
-                        </GlassCard>
-                    </FadeIn>
+  return (
+    <SafeAreaView style={s.safe} edges={['top']}>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
+      >
+        {/* Top bar */}
+        <View style={s.topBar}>
+          <View style={s.topLeft}>
+            <View style={s.avatar}>
+              <Text style={s.avatarText}>S</Text>
+            </View>
+            <View>
+              <Text style={s.greeting}>{greeting}</Text>
+              <View style={s.nameRow}>
+                <Text style={s.userName}>{userName}</Text>
+                <View style={s.lvlBadge}>
+                  <Text style={s.lvlText}>LVL {levelData.level}</Text>
                 </View>
-
-                {/* ── CATEGORY SPENDING ── */}
-                {topCategories.length > 0 && (
-                    <FadeIn>
-                        <GlassCard style={styles.section}>
-                            <View style={styles.sectionHeader}>
-                                <NeonText variant="subtitle">{t('dashboard.categorySpending')}</NeonText>
-                                <TouchableOpacity onPress={() => navigation.navigate('Analytics')}>
-                                    <NeonText variant="caption" color={Colors.electricBlue}>See all</NeonText>
-                                </TouchableOpacity>
-                            </View>
-                            {topCategories.map((cat, idx) => (
-                                <View key={cat.category_name || idx} style={styles.catRow}>
-                                    <View style={[styles.catDot, { backgroundColor: cat.category_color || Colors.neonPurple }]} />
-                                    <NeonText variant="body" color={Colors.textSecondary} numberOfLines={1} style={styles.catName}>
-                                        {cat.category_name || 'Other'}
-                                    </NeonText>
-                                    <View style={styles.catBarWrapper}>
-                                        <View style={[styles.catBar, {
-                                            width: `${Math.round((cat.total / maxCatAmount) * 100)}%`,
-                                            backgroundColor: cat.category_color || Colors.neonPurple,
-                                            shadowColor: cat.category_color || Colors.neonPurple,
-                                            shadowOpacity: 0.7,
-                                            shadowRadius: 6,
-                                        }]} />
-                                    </View>
-                                    <NeonText variant="caption" color={Colors.textSecondary} style={styles.catAmount}>
-                                        {formatCurrency(cat.total)}
-                                    </NeonText>
-                                </View>
-                            ))}
-                        </GlassCard>
-                    </FadeIn>
-                )}
-
-                {/* ── DAILY SPENDING BAR CHART ── */}
-                {dailySpending.length > 0 && (
-                    <FadeIn>
-                        <GlassCard style={styles.section}>
-                            <View style={styles.sectionHeader}>
-                                <NeonText variant="subtitle">{t('dashboard.dailySpending')}</NeonText>
-                                <NeonText variant="caption" color={Colors.textTertiary}>Last 7 days</NeonText>
-                            </View>
-                            <BarChart
-                                data={barData}
-                                width={CHART_WIDTH}
-                                height={160}
-                                chartConfig={barChartConfig}
-                                style={styles.chart}
-                                withInnerLines={false}
-                                showBarTops={false}
-                                yAxisLabel="$"
-                                yAxisSuffix=""
-                                flatColor
-                                fromZero
-                            />
-                        </GlassCard>
-                    </FadeIn>
-                )}
-
-                {/* ── ACCOUNTS CARD ── */}
-                {accounts.length > 0 && (
-                    <FadeIn>
-                        <GlassCard style={styles.section}>
-                            <View style={styles.sectionHeader}>
-                                <NeonText variant="subtitle">{t('dashboard.myAccounts')}</NeonText>
-                                <TouchableOpacity onPress={() => navigation.navigate('Accounts')}>
-                                    <NeonText variant="caption" color={Colors.electricBlue}>Manage</NeonText>
-                                </TouchableOpacity>
-                            </View>
-                            {accounts.map(acc => (
-                                <View key={acc.id} style={styles.accountRow}>
-                                    <View style={styles.accountLeft}>
-                                        <View style={[styles.accountDot, { backgroundColor: acc.color, shadowColor: acc.color, shadowOpacity: 0.8, shadowRadius: 6 }]} />
-                                        <NeonText variant="body" numberOfLines={1}>{acc.name}</NeonText>
-                                    </View>
-                                    <NeonText
-                                        variant="body"
-                                        color={acc.balance >= 0 ? Colors.cyberGreen : Colors.neonPink}
-                                        style={{ fontWeight: '700' }}
-                                    >
-                                        {formatCurrency(acc.balance)}
-                                    </NeonText>
-                                </View>
-                            ))}
-                        </GlassCard>
-                    </FadeIn>
-                )}
-
-                {/* ── STREAK ── */}
-                {streak > 0 && (
-                    <FadeIn>
-                        <GlassCard style={styles.streakCard} glowColor={Colors.glowOrange}>
-                            <View style={styles.streakRow}>
-                                <Ionicons name="flame" size={22} color={Colors.neonOrange} />
-                                <NeonText variant="subtitle" glow glowColor={Colors.glowOrange} color={Colors.neonOrange}>
-                                    {streak} Day Streak
-                                </NeonText>
-                                <Ionicons name="flame" size={22} color={Colors.neonOrange} />
-                            </View>
-                        </GlassCard>
-                    </FadeIn>
-                )}
-
-                <View style={{ height: 100 }} />
-            </ScrollView>
-
-            {/* ── FLOATING ACTION BUTTON ── */}
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => navigation.navigate('AddTransaction')}
-                activeOpacity={0.85}
-            >
-                <LinearGradient
-                    colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                    style={styles.fabGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                >
-                    <Ionicons name="add" size={30} color="#fff" />
-                </LinearGradient>
+              </View>
+            </View>
+          </View>
+          <View style={s.topRight}>
+            <TouchableOpacity onPress={() => navigation.navigate('Transactions')} style={s.iconBtn}>
+              <Ionicons name="search-outline" size={18} color={Colors.textPrimary} />
             </TouchableOpacity>
-
-            {/* ── SPEND PLANNER MODAL ── */}
-            <SpendPlannerModal
-                visible={plannerVisible}
-                onClose={() => setPlannerVisible(false)}
-            />
+            <TouchableOpacity style={s.iconBtn} onPress={() => Linking.openSettings()}>
+              <Ionicons name="notifications-outline" size={18} color={Colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
         </View>
-    );
+
+        {/* Hero — Total Balance */}
+        <View style={s.padH}>
+          <HeroCard style={{ position: 'relative', overflow: 'hidden' }}>
+            {streak > 0 && (
+              <View style={s.streakBadge}>
+                <Ionicons name="flame" size={11} color="#FF8A3D" />
+                <Text style={s.streakText}>{streak}-day streak</Text>
+              </View>
+            )}
+            <Text style={s.heroLabel}>Total balance</Text>
+            <View style={{ marginBottom: Spacing.lg }}>
+              <Amount value={balance} size="hero" color={Colors.onHero} />
+            </View>
+            <View style={s.heroPills}>
+              <View style={s.heroPill}>
+                <View style={[s.heroPillIcon, { backgroundColor: 'rgba(31,204,88,0.18)' }]}>
+                  <Ionicons name="arrow-down" size={12} color={Colors.accent} />
+                </View>
+                <View>
+                  <Text style={s.heroPillLabel}>Income</Text>
+                  <Amount value={monthlyIncome} size="sm" color={Colors.onHero} />
+                </View>
+              </View>
+              <View style={s.heroPill}>
+                <View style={[s.heroPillIcon, { backgroundColor: 'rgba(255,90,107,0.18)' }]}>
+                  <Ionicons name="arrow-up" size={12} color={Colors.negative} />
+                </View>
+                <View>
+                  <Text style={s.heroPillLabel}>Spent</Text>
+                  <Amount value={monthlyExpense} size="sm" color={Colors.onHero} />
+                </View>
+              </View>
+            </View>
+          </HeroCard>
+        </View>
+
+        {/* Quick actions */}
+        <View style={s.quickActions}>
+          {[
+            { icon: 'arrow-down-outline', label: 'Income',  color: Colors.accent,
+              onPress: () => navigation.navigate('AddTransaction', { type: 'income' }) },
+            { icon: 'arrow-up-outline',  label: 'Expense', color: Colors.negative,
+              onPress: () => navigation.navigate('AddTransaction', { type: 'expense' }) },
+            { icon: 'repeat-outline',    label: 'Transfer', color: Colors.info,
+              onPress: () => navigation.navigate('Accounts', { screen: 'TransferMoney' }) },
+            { icon: 'trophy-outline',    label: 'Goals',    color: Colors.orange,
+              onPress: () => navigation.navigate('Plan') },
+          ].map((a) => (
+            <TouchableOpacity key={a.label} style={s.quickAction} onPress={a.onPress} activeOpacity={0.7}>
+              <View style={s.quickActionIcon}>
+                <Ionicons name={a.icon as any} size={20} color={a.color} />
+              </View>
+              <Text style={s.quickActionLabel}>{a.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Health Score */}
+        <View style={s.padH}>
+          <Card>
+            <View style={s.healthRow}>
+              <Ring value={healthScore.score} size={84} stroke={7} color={Colors.accent}
+                label={String(healthScore.score)} sublabel="Score" />
+              <View style={s.healthText}>
+                <Text style={s.healthCategory}>Financial health</Text>
+                <Text style={s.healthLabel}>{healthScore.label}</Text>
+                <Text style={s.healthDesc}>You save {Math.max(0, savingsRate)}% of income this month.</Text>
+              </View>
+            </View>
+            <View style={s.healthPills}>
+              <View style={[s.miniPill, { backgroundColor: Colors.accentSoft }]}>
+                <Ionicons name="checkmark" size={10} color={Colors.accent} />
+                <Text style={[s.miniPillText, { color: Colors.accent }]}>Savings {Math.max(0, savingsRate)}%</Text>
+              </View>
+              {streak > 0 && (
+                <View style={[s.miniPill, { backgroundColor: 'rgba(255,138,61,0.15)' }]}>
+                  <Ionicons name="flame" size={10} color={Colors.orange} />
+                  <Text style={[s.miniPillText, { color: Colors.orange }]}>{streak} day streak</Text>
+                </View>
+              )}
+            </View>
+          </Card>
+        </View>
+
+        {/* Budget */}
+        {budgets.length > 0 && (
+          <>
+            <SectionHeader label={`${curMonthLabel} budget`} action="Details"
+              onAction={() => navigation.navigate('Plan')}
+              style={{ paddingTop: Spacing.xl, paddingBottom: Spacing.sm }} />
+            <View style={s.padH}>
+              <Card>
+                <View style={s.budgetHeader}>
+                  <View>
+                    <Text style={s.budgetSub}>Spent of limit</Text>
+                    <View style={s.budgetAmounts}>
+                      <Amount value={budgetSpent} size="lg" />
+                      <Text style={s.budgetLimit}>/ {formatCurrency(budgetTotal)}</Text>
+                    </View>
+                  </View>
+                  <View style={s.budgetPctBox}>
+                    <Text style={s.budgetPctLabel}>Used</Text>
+                    <Text style={[s.budgetPct, { color: budgetPct > 90 ? Colors.negative : Colors.textPrimary }]}>
+                      {budgetPct}%
+                    </Text>
+                  </View>
+                </View>
+                <Progress value={budgetSpent} max={budgetTotal} height={8}
+                  color={budgetPct > 90 ? Colors.negative : budgetPct > 70 ? Colors.warning : Colors.accent} />
+              </Card>
+            </View>
+          </>
+        )}
+
+        {/* Balance trend */}
+        {balanceSeries.length >= 2 && (
+          <>
+            <SectionHeader label="Balance trend" action="Timeline"
+              onAction={() => navigation.navigate('Timeline')}
+              style={{ paddingTop: Spacing.xl, paddingBottom: Spacing.sm }} />
+            <View style={s.padH}>
+              <Card style={{ paddingHorizontal: Spacing.md, paddingVertical: Spacing.lg }}>
+                <View style={s.chartHeader}>
+                  <Text style={s.chartLabel}>30 days</Text>
+                  <Text style={s.chartGrowth}>{savingsRate >= 0 ? '+' : ''}{savingsRate}%</Text>
+                </View>
+                <AreaChart data={balanceSeries} width={300} height={90} color={Colors.accent} />
+              </Card>
+            </View>
+          </>
+        )}
+
+        {/* Next bill + Top goal */}
+        {(nextExpense || topGoal) && (
+          <View style={s.twoCol}>
+            {nextExpense && (
+              <Card style={{ flex: 1, padding: Spacing.lg }}>
+                <Text style={s.miniCardLabel}>Next bill</Text>
+                <View style={s.miniCardContent}>
+                  <CatAvatar
+                    icon={<Ionicons name="pricetag-outline" size={17} color={nextExpense.categoryColor ?? Colors.accent} />}
+                    color={nextExpense.categoryColor ?? Colors.accent}
+                    size={34}
+                  />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={s.miniCardName} numberOfLines={1}>{nextExpense.label}</Text>
+                    <Text style={s.miniCardSub}>upcoming</Text>
+                  </View>
+                </View>
+                <Amount value={nextExpense.amount} size="md" />
+              </Card>
+            )}
+            {topGoal && (
+              <Card style={{ flex: 1, padding: Spacing.lg }}>
+                <Text style={s.miniCardLabel}>Top goal</Text>
+                <View style={s.miniCardContent}>
+                  <CatAvatar
+                    icon={<Ionicons name={(topGoal.icon ?? 'trophy-outline') as any} size={17} color={topGoal.color ?? Colors.accent} />}
+                    color={topGoal.color ?? Colors.accent}
+                    size={34}
+                  />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={s.miniCardName} numberOfLines={1}>{topGoal.name}</Text>
+                    <Text style={s.miniCardSub}>{Math.round((topGoal.saved_amount / topGoal.target_amount) * 100)}%</Text>
+                  </View>
+                </View>
+                <Progress value={topGoal.saved_amount} max={topGoal.target_amount} height={6}
+                  color={topGoal.color ?? Colors.accent} />
+              </Card>
+            )}
+          </View>
+        )}
+
+        {/* Recent transactions */}
+        {transactions.length > 0 && (
+          <>
+            <SectionHeader label="Recent" action="All"
+              onAction={() => navigation.navigate('Transactions')}
+              style={{ paddingTop: Spacing.xl, paddingBottom: Spacing.sm }} />
+            <View style={s.padH}>
+              <Card style={{ padding: 0 }}>
+                {transactions.slice(0, 4).map((tx, i) => (
+                  <TouchableOpacity key={tx.id} activeOpacity={0.75}
+                    onPress={() => navigation.navigate('EditTransaction', { transaction: tx })}
+                    style={[s.txRow, i < 3 && { borderBottomWidth: 1, borderBottomColor: Colors.border }]}>
+                    <CatAvatar
+                      icon={<Ionicons name={(tx.category_icon ?? 'pricetag-outline') as any} size={18} color={tx.category_color ?? Colors.accent} />}
+                      color={tx.category_color ?? Colors.accent}
+                      size={38}
+                    />
+                    <View style={s.txInfo}>
+                      <Text style={s.txMerchant} numberOfLines={1}>{tx.merchant_name}</Text>
+                      <Text style={s.txMeta}>{tx.category_name} · {tx.date.slice(5)}</Text>
+                    </View>
+                    <Amount value={tx.amount} size="sm" color={tx.type === 'income' ? Colors.accent : Colors.textPrimary} />
+                  </TouchableOpacity>
+                ))}
+              </Card>
+            </View>
+          </>
+        )}
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
+  );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    ambientGlow1: {
-        position: 'absolute',
-        width: 320,
-        height: 320,
-        borderRadius: 160,
-        backgroundColor: 'rgba(191, 90, 242, 0.07)',
-        top: -100,
-        left: -80,
-    },
-    ambientGlow2: {
-        position: 'absolute',
-        width: 260,
-        height: 260,
-        borderRadius: 130,
-        backgroundColor: 'rgba(10, 132, 255, 0.06)',
-        top: 220,
-        right: -70,
-    },
-    scrollContent: {
-        paddingHorizontal: Spacing.lg,
-        paddingTop: Platform.OS === 'android' ? Spacing.xxxl + 8 : Spacing.xxl,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: Spacing.xl,
-        paddingTop: Spacing.xxl,
-    },
-    badgesRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.sm,
-    },
-    levelBadge: {
-        shadowColor: Colors.electricBlue,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-    levelBadgeGrad: {
-        width: 52,
-        borderRadius: 14,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 6,
-        paddingHorizontal: 4,
-        borderWidth: 1,
-        borderColor: 'rgba(0,212,255,0.25)',
-        gap: 2,
-    },
-    xpBarTrack: {
-        width: 36,
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: 'rgba(255,255,255,0.12)',
-        overflow: 'hidden',
-    },
-    xpBarFill: {
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: Colors.electricBlue,
-    },
-    scoreBadge: {
-        ...Shadows.glowPurple,
-    },
-    scoreBadgeGrad: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    heroCard: {
-        marginBottom: Spacing.xl,
-        position: 'relative',
-        overflow: 'visible',
-    },
-    heroOrb: {
-        position: 'absolute',
-        width: 200,
-        height: 200,
-        borderRadius: 100,
-        backgroundColor: 'rgba(191, 90, 242, 0.12)',
-        right: -50,
-        top: -40,
-    },
-    heroBalance: {
-        marginTop: Spacing.xs,
-        marginBottom: Spacing.xl,
-        fontSize: 44,
-        letterSpacing: -2,
-    },
-    heroChips: {
-        flexDirection: 'row',
-        gap: Spacing.md,
-    },
-    heroChip: {
-        flex: 1,
-        borderRadius: BorderRadius.md,
-        overflow: 'hidden',
-    },
-    heroChipGrad: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: Spacing.md,
-        borderRadius: BorderRadius.md,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.06)',
-        gap: Spacing.sm,
-    },
-    chipDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-    },
-    quickActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: Spacing.xl,
-    },
-    quickActionItem: {
-        alignItems: 'center',
-        flex: 1,
-    },
-    quickActionIcon: {
-        width: 54,
-        height: 54,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        overflow: 'hidden',
-    },
-    section: {
-        marginBottom: Spacing.lg,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: Spacing.md,
-    },
-    row: {
-        flexDirection: 'row',
-        marginBottom: Spacing.lg,
-    },
-    eventCard: {
-        flex: 1,
-        gap: Spacing.xs,
-        paddingTop: Spacing.md,
-        position: 'relative',
-        overflow: 'hidden',
-    },
-    eventBar: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: 3,
-        borderRadius: 2,
-    },
-    chart: {
-        borderRadius: BorderRadius.md,
-        marginLeft: -Spacing.md,
-    },
-    emptyChart: {
-        height: 100,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: Spacing.sm,
-    },
-    chartLegend: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.xs,
-    },
-    legendDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-    },
-    catRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: Spacing.sm,
-        gap: Spacing.sm,
-    },
-    catDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-    },
-    catName: {
-        width: 80,
-        fontSize: 12,
-    },
-    catBarWrapper: {
-        flex: 1,
-        height: 6,
-        backgroundColor: 'rgba(255,255,255,0.06)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    catBar: {
-        height: 6,
-        borderRadius: 3,
-    },
-    catAmount: {
-        width: 64,
-        textAlign: 'right',
-        fontSize: 11,
-    },
-    accountRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-    },
-    accountLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.sm,
-    },
-    accountDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-    },
-    streakCard: {
-        marginBottom: Spacing.lg,
-        paddingVertical: Spacing.md,
-    },
-    streakRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: Spacing.sm,
-    },
-    fab: {
-        position: 'absolute',
-        right: Spacing.xl,
-        bottom: Spacing.xl + 4,
-        ...Shadows.glowPurple,
-    },
-    fabGradient: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  scroll: { flex: 1 },
+  content: { paddingBottom: 20 },
+  padH: { paddingHorizontal: Spacing.xl },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, paddingBottom: Spacing.lg },
+  topLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  topRight: { flexDirection: 'row', gap: Spacing.sm },
+  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.accent,
+    alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 17, fontWeight: '700', color: Colors.onAccent },
+  greeting: { fontSize: 12, color: Colors.textTertiary, letterSpacing: 0.2 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  userName: { fontSize: 16, fontWeight: '600', color: Colors.textPrimary, letterSpacing: -0.2 },
+  lvlBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: Colors.accentSoft },
+  lvlText: { fontSize: 10, fontWeight: '600', color: Colors.accent, letterSpacing: 0.5 },
+  iconBtn: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: Colors.border,
+    alignItems: 'center', justifyContent: 'center' },
+  streakBadge: { position: 'absolute', top: Spacing.lg, right: Spacing.lg,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(255,138,61,0.15)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  streakText: { fontSize: 11, fontWeight: '600', color: '#FF8A3D' },
+  heroLabel: { fontSize: 12, color: 'rgba(244,245,240,0.55)', textTransform: 'uppercase',
+    letterSpacing: 1.6, marginBottom: 10 },
+  heroPills: { flexDirection: 'row', gap: Spacing.sm },
+  heroPill: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8,
+    padding: 10, borderRadius: BorderRadius.md, backgroundColor: 'rgba(255,255,255,0.06)' },
+  heroPillIcon: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  heroPillLabel: { fontSize: 10, color: 'rgba(244,245,240,0.5)', textTransform: 'uppercase', letterSpacing: 1 },
+  quickActions: { flexDirection: 'row', paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg, justifyContent: 'space-between' },
+  quickAction: { flex: 1, alignItems: 'center', gap: 6 },
+  quickActionIcon: { width: 52, height: 52, borderRadius: 18, backgroundColor: Colors.bgCard,
+    borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  quickActionLabel: { fontSize: 11, color: Colors.textSecondary, fontWeight: '500' },
+  healthRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
+  healthText: { flex: 1, minWidth: 0 },
+  healthCategory: { fontSize: 11, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 1.4 },
+  healthLabel: { fontSize: 20, fontWeight: '600', color: Colors.textPrimary, letterSpacing: -0.4, marginTop: 2 },
+  healthDesc: { fontSize: 12, color: Colors.textSecondary, lineHeight: 17, marginTop: 4 },
+  healthPills: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg, flexWrap: 'wrap' },
+  miniPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
+  miniPillText: { fontSize: 11, fontWeight: '600' },
+  budgetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: Spacing.md },
+  budgetSub: { fontSize: 12, color: Colors.textTertiary },
+  budgetAmounts: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 2 },
+  budgetLimit: { fontSize: 14, color: Colors.textTertiary },
+  budgetPctBox: { alignItems: 'flex-end' },
+  budgetPctLabel: { fontSize: 10, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 1 },
+  budgetPct: { fontSize: 20, fontWeight: '600', letterSpacing: -0.5 },
+  chartHeader: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.sm, marginBottom: Spacing.md },
+  chartLabel: { fontSize: 11, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 1.2 },
+  chartGrowth: { fontSize: 11, fontWeight: '600', color: Colors.accent },
+  twoCol: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl },
+  miniCardLabel: { fontSize: 11, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 },
+  miniCardContent: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  miniCardName: { fontSize: 14, fontWeight: '600', color: Colors.textPrimary },
+  miniCardSub: { fontSize: 11, color: Colors.textTertiary },
+  txRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.md },
+  txInfo: { flex: 1, minWidth: 0 },
+  txMerchant: { fontSize: 14, fontWeight: '500', color: Colors.textPrimary },
+  txMeta: { fontSize: 11, color: Colors.textTertiary, marginTop: 1 },
 });

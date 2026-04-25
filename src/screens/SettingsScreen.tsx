@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -126,7 +127,7 @@ export const SettingsScreen: React.FC = () => {
     );
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl + Spacing.xl }}>Settings</NeonText>
 
@@ -183,13 +184,13 @@ export const SettingsScreen: React.FC = () => {
                 <NeonText variant="subtitle" style={styles.sectionTitle}>Manage</NeonText>
                 <GlassCard style={styles.navSection}>
                     {navItem('Categories', 'grid-outline', 'CategoriesManage')}
-                    {navItem('Merchants', 'storefront-outline', 'MerchantsManage')}
+                    {navItem('Merchants', 'storefront-outline', 'Merchants')}
                     {navItem('Budgets', 'pie-chart-outline', 'BudgetsManage')}
                     {navItem('Goals', 'trophy-outline', 'GoalsManage')}
                     {navItem('Achievements', 'medal-outline', 'Achievements')}
                     {navItem('Calendar', 'calendar-outline', 'Calendar')}
                     {navItem('Timeline', 'time-outline', 'Timeline')}
-                    {navItem('Transfers', 'swap-horizontal-outline', 'Transfers')}
+                    {navItem('Transfers', 'swap-horizontal-outline', 'TransferMoney')}
 
                     <TouchableOpacity style={[styles.navItem, { borderBottomWidth: 0 }]} onPress={handleReset}>
                         <View style={styles.navLeft}>
@@ -202,12 +203,12 @@ export const SettingsScreen: React.FC = () => {
 
                 <View style={{ height: 100 }} />
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     scroll: { paddingHorizontal: Spacing.lg },
     sectionTitle: { marginTop: Spacing.xl, marginBottom: Spacing.md },
     section: { marginBottom: Spacing.md },

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,7 +58,7 @@ export const CalendarScreen: React.FC = () => {
     const { projected, pastTx } = selectedDate ? getEventsForDate(selectedDate) : { projected: [], pastTx: [] };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Financial Calendar</NeonText>
             </View>
@@ -116,12 +117,12 @@ export const CalendarScreen: React.FC = () => {
                     )}
                 />
             )}
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
     calendar: { marginHorizontal: Spacing.lg, borderRadius: BorderRadius.lg, overflow: 'hidden' },
     eventList: { flex: 1, paddingHorizontal: Spacing.lg, marginTop: Spacing.lg },

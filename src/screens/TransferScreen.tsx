@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -56,7 +57,7 @@ export const TransferScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     const toAccount = accounts.find(a => a.id === toId);
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -148,14 +149,14 @@ export const TransferScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
                 <View style={{ height: 100 }} />
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     scroll: { paddingHorizontal: Spacing.lg },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.xxl + Spacing.xl, paddingBottom: Spacing.md },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.lg, paddingBottom: Spacing.md },
     form: { marginBottom: Spacing.lg },
     label: { marginBottom: Spacing.sm, color: Colors.textSecondary },
     accountScroll: { marginBottom: Spacing.md },

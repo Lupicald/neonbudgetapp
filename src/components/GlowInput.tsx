@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle, TouchableOpacity } from 'react-native';
-import { Colors, BorderRadius, Spacing, FontSize, FontWeight } from '../theme';
+import { TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle } from 'react-native';
+import { BorderRadius, Spacing, FontSize, FontWeight, Colors } from '../theme';
 
 interface GlowInputProps extends TextInputProps {
     label?: string;
     error?: string;
-    glowColor?: string;
+    glowColor?: string;  // kept for API compat — controls focused border color
     containerStyle?: ViewStyle;
     icon?: React.ReactNode;
 }
@@ -13,7 +13,7 @@ interface GlowInputProps extends TextInputProps {
 export const GlowInput: React.FC<GlowInputProps> = ({
     label,
     error,
-    glowColor = Colors.electricBlue,
+    glowColor = Colors.accent,
     containerStyle,
     icon,
     ...rest
@@ -23,33 +23,22 @@ export const GlowInput: React.FC<GlowInputProps> = ({
     return (
         <View style={[styles.container, containerStyle]}>
             {label && <Text style={styles.label}>{label}</Text>}
-            <TouchableOpacity
-                activeOpacity={1}
+            <View
                 style={[
                     styles.inputWrapper,
-                    focused && {
-                        borderColor: glowColor,
-                        shadowColor: glowColor,
-                        shadowOffset: { width: 0, height: 0 },
-                        shadowOpacity: 0.4,
-                        shadowRadius: 8,
-                        elevation: 4,
-                    },
+                    focused && { borderColor: glowColor, borderWidth: 1.5 },
                     error ? styles.errorBorder : null,
                 ]}
-                onPress={() => {
-                    // El teclado se abrirá al setear el foco en el TextInput automáticamente porque todo el botón es tocable.
-                }}
             >
                 {icon && <View style={styles.iconWrapper}>{icon}</View>}
                 <TextInput
-                    style={[styles.input, icon ? styles.inputWithIcon : null, { color: Colors.textPrimary }]}
-                    placeholderTextColor={Colors.textMuted}
+                    style={[styles.input, icon ? styles.inputWithIcon : null]}
+                    placeholderTextColor="rgba(240, 245, 241, 0.28)"
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
                     {...rest}
                 />
-            </TouchableOpacity>
+            </View>
             {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
     );
@@ -60,27 +49,26 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.lg,
     },
     label: {
-        color: Colors.textSecondary,
+        color: '#6B8F74',
         fontSize: FontSize.sm,
         fontWeight: FontWeight.medium,
         marginBottom: Spacing.xs,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        letterSpacing: 0.3,
     },
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.surface,
+        backgroundColor: '#101710',
         borderRadius: BorderRadius.md,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: '#1A5C38',
     },
     iconWrapper: {
         paddingLeft: Spacing.md,
     },
     input: {
         flex: 1,
-        color: Colors.textPrimary,
+        color: '#F0F5F1',
         fontSize: FontSize.lg,
         paddingVertical: Spacing.md,
         paddingHorizontal: Spacing.md,
@@ -90,10 +78,10 @@ const styles = StyleSheet.create({
         paddingLeft: Spacing.sm,
     },
     errorBorder: {
-        borderColor: Colors.danger,
+        borderColor: '#FF4C6A',
     },
     errorText: {
-        color: Colors.danger,
+        color: '#FF4C6A',
         fontSize: FontSize.xs,
         marginTop: Spacing.xs,
     },

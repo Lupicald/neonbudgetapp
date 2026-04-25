@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassCard, NeonText, NeonButton, GlowInput, ProgressBar } from '../components';
@@ -8,14 +9,14 @@ import { getGoals, addGoal, addToGoal, deleteGoal } from '../database/goalServic
 import { Goal } from '../types';
 import { formatCurrency } from '../utils';
 
-const GOAL_ICONS = ['trophy', 'car', 'airplane', 'home', 'laptop', 'school', 'heart', 'diamond', 'gift', 'rocket', 'planet', 'star'];
+const GOAL_ICONS = ['trophy-outline', 'car-outline', 'airplane-outline', 'home-outline', 'laptop-outline', 'school-outline', 'heart-outline', 'diamond-outline', 'gift-outline', 'rocket-outline', 'planet-outline', 'star-outline'];
 
 export const GoalsScreen: React.FC = () => {
     const [goals, setGoals] = useState<Goal[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [name, setName] = useState('');
     const [target, setTarget] = useState('');
-    const [selectedIcon, setSelectedIcon] = useState('trophy');
+    const [selectedIcon, setSelectedIcon] = useState('trophy-outline');
     const [selectedColor, setSelectedColor] = useState(CategoryColors[0]);
     const [addAmountId, setAddAmountId] = useState<number | null>(null);
     const [addAmount, setAddAmount] = useState('');
@@ -54,7 +55,7 @@ export const GoalsScreen: React.FC = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Savings Goals</NeonText>
                 <TouchableOpacity onPress={() => setShowForm(!showForm)} style={{ paddingTop: Spacing.xxl }}>
@@ -160,12 +161,12 @@ export const GoalsScreen: React.FC = () => {
                     );
                 }}
             />
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
     listContent: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
     empty: { alignItems: 'center', justifyContent: 'center', paddingTop: 100, gap: Spacing.md },

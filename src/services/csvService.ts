@@ -2,7 +2,7 @@ import { getDatabase } from '../database/database';
 import { getAccounts, addAccount } from '../database/accountService';
 import { getCategories } from '../database/categoryService';
 import { Account, Category } from '../types';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 // ========================
@@ -80,9 +80,9 @@ export const exportToCSV = async (): Promise<string> => {
     const csv = header + rows + recurringSection;
 
     // Save to file
-    const filename = `neonbudget-${new Date().toISOString().split('T')[0]}.csv`;
+    const filename = `sumari-${new Date().toISOString().split('T')[0]}.csv`;
     const filePath = `${FileSystem.documentDirectory}${filename}`;
-    await FileSystem.writeAsStringAsync(filePath, csv, { encoding: FileSystem.EncodingType.UTF8 });
+    await FileSystem.writeAsStringAsync(filePath, csv, { encoding: 'utf8' });
 
     return filePath;
 };
@@ -118,7 +118,9 @@ interface CashewRow {
 }
 
 export const parseCSV = (csvContent: string): CashewRow[] => {
-    const lines = csvContent.split('\n');
+    // Standardize newlines before splitting
+    const normalizedContent = csvContent.replace(/\r\n/g, '\n');
+    const lines = normalizedContent.split('\n');
     if (lines.length < 2) return [];
 
     const rows: CashewRow[] = [];
@@ -126,6 +128,9 @@ export const parseCSV = (csvContent: string): CashewRow[] => {
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
+
+        // Stop processing normal transactions if we hit the recurring section
+        if (line.includes('#RECURRING_ITEMS')) break;
 
         // Handle multi-line notes (wrapped in quotes)
         let fullLine = line;
@@ -135,7 +140,7 @@ export const parseCSV = (csvContent: string): CashewRow[] => {
         }
 
         const fields = parseCSVLine(fullLine);
-        if (fields.length < 10) continue;
+        if (fields.length < 5) continue; // Not enough fields to be a valid row
 
         rows.push({
             account: fields[0] || 'Cash',
@@ -235,8 +240,10 @@ export const importFromCSV = async (csvContent: string): Promise<{ imported: num
             const txType = row.income ? 'income' : 'expense';
             const amount = Math.abs(row.amount);
 
-            // Parse date
-            const dateStr = row.date.split(' ')[0]; // Just the date part
+            // Parse date (Cashew exports as "2026-03-10 0:00:00")
+            // Make absolutely sure it's just '2026-03-10' without trailing spaces or quotes
+            const rawDate = (row.date || '').trim().replace(/(^"|"$)/g, '');
+            const dateStr = rawDate.split(' ')[0];
 
             await db.runAsync(
                 'INSERT INTO transactions (type, amount, merchant_name, category_id, account_id, date, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -332,19 +339,23 @@ const parseCSVLine = (line: string): string[] => {
 
         if (char === '"') {
             if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+                // Escaped quote
                 current += '"';
                 i++;
             } else {
+                // Start/end quote
                 inQuotes = !inQuotes;
             }
         } else if (char === ',' && !inQuotes) {
-            fields.push(current.trim());
+            // Field boundary
+            fields.push(current);
             current = '';
         } else {
+            // Normal character
             current += char;
         }
     }
 
-    fields.push(current.trim());
-    return fields;
+    fields.push(current);
+    return fields.map(f => f.trim());
 };

@@ -1,75 +1,92 @@
-// Premium minimal palette — clean dark with precise accent touches
+// Sumari Design System — dark-first finance theme
 export const Colors = {
-  // Backgrounds — true dark charcoal, not navy
-  background: '#0C0C0C',
-  backgroundLight: '#131313',
-  backgroundCard: '#181818',
-  backgroundCardLight: '#202020',
-  surface: '#181818',
-  surfaceLight: '#202020',
+  // Backgrounds
+  bg: '#0B0D0C',
+  bgElevated: '#15181A',
+  bgCard: '#1A1E20',
+  bgCardAlt: '#22272A',
+  bgHero: '#0F1110',
 
-  // Accent system — used sparingly, not on every element
-  neonPurple: '#7C3AED',        // rare accent, hero gradient only
-  neonPurpleLight: '#A78BFA',
-  neonPurpleDark: '#5B21B6',
-  electricBlue: '#3B82F6',      // interactive elements, links
-  electricBlueLight: '#60A5FA',
-  electricBlueDark: '#1D4ED8',
-  cyberGreen: '#10B981',        // income, positive balance
-  cyberGreenLight: '#34D399',
-  cyberGreenDark: '#059669',
-  neonPink: '#EF4444',          // expense, negative balance
-  neonPinkLight: '#F87171',
-  neonPinkDark: '#DC2626',
-  neonOrange: '#F59E0B',        // warnings
-  neonYellow: '#FCD34D',
+  // Text
+  textPrimary: '#F4F5F0',
+  textSecondary: '#B8BDB5',
+  textTertiary: '#7A8078',
+  textMuted: '#4A504D',
 
-  // Text — clean white/gray hierarchy
-  textPrimary: '#F9FAFB',
-  textSecondary: 'rgba(249, 250, 251, 0.60)',
-  textTertiary: 'rgba(249, 250, 251, 0.35)',
-  textMuted: 'rgba(249, 250, 251, 0.18)',
+  // Accent — emerald green
+  accent: '#1FCC58',
+  accentSoft: '#163B23',
+  accentGlow: 'rgba(31,204,88,0.25)',
 
   // Semantic
-  income: '#10B981',
-  expense: '#EF4444',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  success: '#10B981',
+  positive: '#1FCC58',
+  negative: '#FF5A6B',
+  negativeSoft: '#3B1A1F',
+  warning: '#FFB547',
+  warningSoft: '#3B2A12',
+  info: '#5AA0FF',
+  infoSoft: '#0F1E35',
+  orange: '#FF8A3D',
 
-  // Borders — barely visible, professional
-  border: 'rgba(255, 255, 255, 0.06)',
-  borderLight: 'rgba(255, 255, 255, 0.11)',
-  borderNeon: 'rgba(124, 58, 237, 0.22)',
+  // Borders
+  border: 'rgba(255,255,255,0.06)',
+  borderStrong: 'rgba(255,255,255,0.12)',
 
-  // Gradients — subtle, not vivid
-  gradientPurple: ['#7C3AED', '#5B21B6'] as string[],
-  gradientPurpleBlue: ['#7C3AED', '#3B82F6'] as string[],
-  gradientBlue: ['#3B82F6', '#60A5FA'] as string[],
-  gradientGreen: ['#10B981', '#059669'] as string[],
-  gradientPink: ['#EF4444', '#DC2626'] as string[],
-  gradientDark: ['#202020', '#0C0C0C'] as string[],
-  gradientCard: ['#1E1E1E', '#161616'] as string[],
-  gradientHero: ['#1A103A', '#0C0C0C'] as string[],
-  gradientIncome: ['#10B981', '#3B82F6'] as string[],
-  gradientExpense: ['#EF4444', '#F59E0B'] as string[],
-  gradientPlanned: ['#7C3AED', '#3B82F6'] as string[],
+  // Controls
+  onAccent: '#0B0D0C',
+  onHero: '#F4F5F0',
 
-  // Glow — used only on key numbers, not decorative
-  glowPurple: '#7C3AED',
-  glowBlue: '#3B82F6',
-  glowGreen: '#10B981',
-  glowPink: '#EF4444',
-  glowOrange: '#F59E0B',
+  // Legacy aliases kept for backward compat with services
+  background: '#0B0D0C',
+  backgroundCard: '#1A1E20',
+  backgroundLight: '#15181A',
+  surface: '#1A1E20',
+  surfaceLight: '#22272A',
+  income: '#1FCC58',
+  expense: '#FF5A6B',
+  danger: '#FF5A6B',
+  success: '#1FCC58',
+  borderLight: 'rgba(255,255,255,0.12)',
+  tabBarBackground: '#0B0D0C',
+  tabBarActive: '#F4F5F0',
+  tabBarInactive: '#7A8078',
 
-  // Tab bar
-  tabBarBackground: '#111111',
-  tabBarActive: '#10B981',
-  tabBarInactive: 'rgba(249, 250, 251, 0.28)',
+  // Legacy color names (kept so old screens compile)
+  neonPink: '#FF5A6B',
+  neonOrange: '#FFB547',
+  neonYellow: '#FFB547',
+  cyberGreen: '#1FCC58',
+  neonPurple: '#1FCC58',
+  neonPurpleLight: '#4DDB80',
+  neonPurpleDark: '#0D8F3E',
+  electricBlue: '#5AA0FF',
+  electricBlueLight: '#80B8FF',
+  electricBlueDark: '#2E73D9',
+  cyberGreenLight: '#4DDB80',
+  cyberGreenDark: '#0D8F3E',
+  neonPinkLight: '#FF8095',
+  neonPinkDark: '#CC1F3B',
+  glowPurple: '#1FCC58',
+  glowBlue: '#5AA0FF',
+  glowGreen: '#1FCC58',
+  glowPink: '#FF5A6B',
+  glowOrange: '#FFB547',
+  gradientPurple: ['#1FCC58', '#0D8F3E'] as string[],
+  gradientPurpleBlue: ['#1FCC58', '#5AA0FF'] as string[],
+  gradientBlue: ['#5AA0FF', '#2E73D9'] as string[],
+  gradientGreen: ['#1FCC58', '#0D8F3E'] as string[],
+  gradientPink: ['#FF5A6B', '#CC1F3B'] as string[],
+  gradientDark: ['#22272A', '#1A1E20'] as string[],
+  gradientCard: ['#22272A', '#1A1E20'] as string[],
+  gradientHero: ['#15181A', '#0B0D0C'] as string[],
+  gradientIncome: ['#1FCC58', '#0D8F3E'] as string[],
+  gradientExpense: ['#FF5A6B', '#CC1F3B'] as string[],
+  gradientPlanned: ['#1FCC58', '#0D8F3E'] as string[],
+  backgroundCardLight: '#22272A',
 };
 
 export const CategoryColors = [
-  '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#FCD34D',
-  '#7C3AED', '#8B5CF6', '#60A5FA', '#F87171', '#6B7280',
-  '#34D399', '#FCA5A5', '#A78BFA', '#1D4ED8', '#DC2626',
+  '#1FCC58', '#FF8A3D', '#5AA0FF', '#B58DFF', '#FF5A8A',
+  '#FF5A6B', '#FFB547', '#E57AFF', '#FF8A3D', '#5AA0FF',
+  '#1FCC58', '#FFB547', '#B58DFF', '#1FCC58', '#FF5A6B',
 ];

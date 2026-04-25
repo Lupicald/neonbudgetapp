@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassCard, NeonText, NeonButton, GlowInput, ProgressBar, CategoryIcon } from '../components';
@@ -73,7 +74,7 @@ export const BudgetsScreen: React.FC = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Budgets</NeonText>
                 <TouchableOpacity onPress={() => {
@@ -177,12 +178,12 @@ export const BudgetsScreen: React.FC = () => {
                     );
                 }}
             />
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
     listContent: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
     empty: { alignItems: 'center', justifyContent: 'center', paddingTop: 100, gap: Spacing.md },

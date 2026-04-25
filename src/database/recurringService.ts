@@ -1,7 +1,16 @@
 import { getDatabase } from './database';
 import { RecurringItem, RecurringFrequency, TransactionType } from '../types';
 import { addTransaction } from './transactionService';
-import { addDays, addWeeks, addMonths, addYears, format, nextDay, setDate, parseISO, getDaysInMonth } from 'date-fns';
+import { addDays, addWeeks, addMonths, addYears, format, nextDay, setDate, parseISO, getDaysInMonth, isValid } from 'date-fns';
+
+const safeParseDate = (dateStr: string): Date => {
+    if (!dateStr) return new Date();
+    const p = parseISO(dateStr);
+    if (isValid(p)) return p;
+    const d = new Date(dateStr);
+    if (isValid(d)) return d;
+    return new Date();
+};
 
 export const getRecurringItems = async (type?: TransactionType): Promise<RecurringItem[]> => {
     const db = await getDatabase();
@@ -49,15 +58,32 @@ export const updateRecurringItem = async (
     intervalDays: number,
     dayOfWeek: number | null,
     dayOfMonth: number | null,
-    startDate: string
+    startDate: string,
+    customNextDate?: string
 ): Promise<void> => {
     const db = await getDatabase();
-    const nextDate = calculateNextDate(frequency, intervalDays, dayOfWeek, dayOfMonth, startDate);
+    const nextDate = customNextDate && isValid(safeParseDate(customNextDate))
+        ? customNextDate
+        : calculateNextDate(frequency, intervalDays, dayOfWeek, dayOfMonth, startDate);
     await db.runAsync(
         `UPDATE recurring_items SET name = ?, amount = ?, category_id = ?, frequency = ?, interval_days = ?,
      day_of_week = ?, day_of_month = ?, start_date = ?, next_date = ? WHERE id = ?`,
         [name, amount, categoryId, frequency, intervalDays, dayOfWeek, dayOfMonth, startDate, nextDate, id]
     );
+};
+
+export const skipRecurringPayment = async (id: number): Promise<void> => {
+    const db = await getDatabase();
+    const item = await db.getFirstAsync<RecurringItem>('SELECT * FROM recurring_items WHERE id = ?', [id]);
+    if (!item) throw new Error('Recurring item not found');
+    const nextDate = calculateNextDate(
+        item.frequency,
+        item.interval_days,
+        item.day_of_week,
+        item.day_of_month,
+        item.next_date
+    );
+    await db.runAsync('UPDATE recurring_items SET next_date = ? WHERE id = ?', [nextDate, id]);
 };
 
 export const deleteRecurringItem = async (id: number): Promise<void> => {
@@ -113,7 +139,7 @@ export const calculateNextDate = (
 ): string => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // normalize to midnight for fair comparison
-    let date = parseISO(fromDate);
+    let date = safeParseDate(fromDate);
 
     // For monthly with a specific day, anchor to that day in the fromDate's month first,
     // so e.g. setting day=28 on March 10 returns March 28, not April 28
@@ -138,7 +164,7 @@ export const generateFutureOccurrences = (
 ): { date: string; label: string; amount: number; type: TransactionType }[] => {
     const events: { date: string; label: string; amount: number; type: TransactionType }[] = [];
     const endDate = addDays(new Date(), days);
-    let currentDate = parseISO(item.next_date);
+    let currentDate = safeParseDate(item.next_date);
 
     const maxIterations = 200;
     let i = 0;

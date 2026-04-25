@@ -6,9 +6,9 @@ import {
     ViewStyle,
     TextStyle,
     ActivityIndicator,
+    View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, BorderRadius, Spacing, FontSize, FontWeight, Shadows } from '../theme';
+import { BorderRadius, Spacing, FontSize, FontWeight, Colors } from '../theme';
 
 interface NeonButtonProps {
     title: string;
@@ -23,18 +23,27 @@ interface NeonButtonProps {
     fullWidth?: boolean;
 }
 
-const gradientMap = {
-    primary: Colors.gradientPurpleBlue as [string, string],
-    secondary: Colors.gradientBlue as [string, string],
-    danger: Colors.gradientExpense as [string, string],
-    outline: Colors.gradientDark as [string, string],
-};
-
-const glowMap = {
-    primary: Shadows.glowPurple,
-    secondary: Shadows.glowBlue,
-    danger: Shadows.glowPink,
-    outline: {},
+const variantStyles = {
+    primary: {
+        bg: Colors.accent,
+        text: Colors.onAccent,
+        border: 'transparent',
+    },
+    secondary: {
+        bg: Colors.accent,
+        text: Colors.onAccent,
+        border: 'transparent',
+    },
+    danger: {
+        bg: 'transparent',
+        text: '#FF4C6A',
+        border: '#FF4C6A',
+    },
+    outline: {
+        bg: 'transparent',
+        text: Colors.accent,
+        border: Colors.accent,
+    },
 };
 
 export const NeonButton: React.FC<NeonButtonProps> = ({
@@ -49,7 +58,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
     textStyle,
     fullWidth = false,
 }) => {
-    const isOutline = variant === 'outline';
+    const vs = variantStyles[variant];
 
     return (
         <TouchableOpacity
@@ -58,24 +67,23 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
             activeOpacity={0.75}
             style={[fullWidth && styles.fullWidth, style]}
         >
-            <LinearGradient
-                colors={
-                    disabled
-                        ? (['#1A1A2E', '#0F0F1E'] as [string, string])
-                        : gradientMap[variant]
-                }
+            <View
                 style={[
                     styles.button,
                     styles[size],
-                    isOutline && styles.outline,
-                    !disabled && !isOutline && (glowMap[variant] as ViewStyle),
+                    {
+                        backgroundColor: disabled ? '#162016' : vs.bg,
+                        borderColor: disabled ? Colors.accent + '14' : vs.border,
+                        borderWidth: vs.border === 'transparent' ? 0 : 1.5,
+                    },
                     fullWidth && styles.fullWidth,
                 ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
             >
                 {loading ? (
-                    <ActivityIndicator color={Colors.textPrimary} size="small" />
+                    <ActivityIndicator
+                        color={disabled ? 'rgba(240,245,241,0.20)' : vs.text}
+                        size="small"
+                    />
                 ) : (
                     <>
                         {icon && <>{icon}</>}
@@ -83,8 +91,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
                             style={[
                                 styles.text,
                                 styles[`${size}Text` as keyof typeof styles] as TextStyle,
-                                isOutline && styles.outlineText,
-                                disabled && styles.disabledText,
+                                { color: disabled ? 'rgba(240,245,241,0.20)' : vs.text },
                                 textStyle,
                             ]}
                         >
@@ -92,7 +99,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
                         </Text>
                     </>
                 )}
-            </LinearGradient>
+            </View>
         </TouchableOpacity>
     );
 };
@@ -102,7 +109,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: BorderRadius.lg,
+        borderRadius: 14,
         gap: Spacing.sm,
     },
     fullWidth: {
@@ -121,8 +128,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.xxl,
     },
     text: {
-        color: Colors.textPrimary,
-        fontWeight: FontWeight.semibold,
+        fontWeight: '600',
+        letterSpacing: 0.1,
     },
     smText: {
         fontSize: FontSize.sm,
@@ -133,15 +140,5 @@ const styles = StyleSheet.create({
     lgText: {
         fontSize: FontSize.lg,
     },
-    outline: {
-        backgroundColor: 'transparent',
-        borderWidth: 1,
-        borderColor: Colors.neonPurple,
-    },
-    outlineText: {
-        color: Colors.neonPurple,
-    },
-    disabledText: {
-        color: Colors.textTertiary,
-    },
+    outline: {},
 });

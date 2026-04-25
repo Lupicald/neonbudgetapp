@@ -1,242 +1,260 @@
 import React, { useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, TextInput, Modal,
+} from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { GlassCard, NeonText, NeonButton, GlowInput, CategoryIcon } from '../components';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Card, HeroCard, Amount, SumariButton, SectionHeader, TopBar } from '../components/SumariPrimitives';
 import { Colors, Spacing, BorderRadius, CategoryColors } from '../theme';
-import { getAccounts, addAccount, updateAccount, updateAccountBalance, deleteAccount } from '../database/accountService';
+import { getAccounts, addAccount, updateAccount, deleteAccount, getTotalBalance } from '../database/accountService';
 import { Account, AccountType } from '../types';
-import { formatCurrency } from '../utils';
 
 const ACCOUNT_TYPES: { label: string; value: AccountType; icon: string }[] = [
-    { label: 'Bank', value: 'bank', icon: 'card-outline' },
-    { label: 'Cash', value: 'cash', icon: 'cash-outline' },
-    { label: 'Credit', value: 'credit', icon: 'card-outline' },
-    { label: 'Savings', value: 'savings', icon: 'wallet-outline' },
-    { label: 'Investment', value: 'investment', icon: 'trending-up-outline' },
-    { label: 'Other', value: 'other', icon: 'ellipse-outline' },
+  { label: 'Bank', value: 'bank', icon: 'card-outline' },
+  { label: 'Cash', value: 'cash', icon: 'cash-outline' },
+  { label: 'Credit', value: 'credit', icon: 'card-outline' },
+  { label: 'Savings', value: 'savings', icon: 'wallet-outline' },
+  { label: 'Investment', value: 'investment', icon: 'trending-up-outline' },
+  { label: 'Other', value: 'other', icon: 'ellipse-outline' },
 ];
 
 const ACCOUNT_ICONS = [
-    'card-outline', 'cash-outline', 'wallet-outline', 'trending-up-outline',
-    'business-outline', 'globe-outline', 'shield-outline', 'diamond-outline',
+  'card-outline', 'cash-outline', 'wallet-outline', 'trending-up-outline',
+  'business-outline', 'globe-outline', 'shield-outline', 'diamond-outline',
 ];
 
+const BLANK = { name: '', type: 'bank' as AccountType, balance: '', icon: 'card-outline', color: Colors.accent };
+
 export const AccountsScreen: React.FC = () => {
-    const navigation = useNavigation<any>();
-    const [accounts, setAccounts] = useState<Account[]>([]);
-    const [showForm, setShowForm] = useState(false);
-    const [editId, setEditId] = useState<number | null>(null);
-    const [name, setName] = useState('');
-    const [balance, setBalance] = useState('');
-    const [selectedType, setSelectedType] = useState<AccountType>('bank');
-    const [selectedIcon, setSelectedIcon] = useState('card-outline');
-    const [selectedColor, setSelectedColor] = useState(Colors.electricBlue);
-    const [editBalanceId, setEditBalanceId] = useState<number | null>(null);
-    const [editBalanceVal, setEditBalanceVal] = useState('');
+  const navigation = useNavigation<any>();
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [form, setForm] = useState(BLANK);
 
-    const loadData = useCallback(async () => {
-        setAccounts(await getAccounts());
-    }, []);
+  const load = useCallback(async () => {
+    try {
+      const [accs, total] = await Promise.all([getAccounts(), getTotalBalance()]);
+      setAccounts(accs);
+      setTotalBalance(total);
+    } catch (e) { console.log(e); }
+  }, []);
 
-    useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
-    const resetForm = () => {
-        setShowForm(false); setEditId(null);
-        setName(''); setBalance('');
-        setSelectedType('bank'); setSelectedIcon('card-outline');
-        setSelectedColor(Colors.electricBlue);
-    };
+  const openAdd = () => { setEditId(null); setForm(BLANK); setShowForm(true); };
+  const openEdit = (a: Account) => {
+    setEditId(a.id);
+    setForm({ name: a.name, type: a.type, balance: String(a.balance), icon: a.icon, color: a.color });
+    setShowForm(true);
+  };
 
-    const handleSave = async () => {
-        if (!name.trim()) { Alert.alert('Error', 'Enter an account name'); return; }
-        if (editId) {
-            await updateAccount(editId, name.trim(), selectedType, selectedIcon, selectedColor);
-        } else {
-            await addAccount(name.trim(), selectedType, parseFloat(balance) || 0, selectedIcon, selectedColor);
-        }
-        resetForm();
-        loadData();
-    };
+  const handleSave = async () => {
+    if (!form.name.trim()) return Alert.alert('Name required');
+    const bal = parseFloat(form.balance) || 0;
+    if (editId) {
+      await updateAccount(editId, form.name, form.type, form.icon, form.color);
+    } else {
+      await addAccount(form.name, form.type, bal, form.icon, form.color);
+    }
+    setShowForm(false);
+    load();
+  };
 
-    const handleEdit = (acc: Account) => {
-        setEditId(acc.id); setName(acc.name);
-        setSelectedType(acc.type); setSelectedIcon(acc.icon);
-        setSelectedColor(acc.color); setShowForm(true);
-    };
+  const handleDelete = (a: Account) => {
+    Alert.alert('Delete Account', `Delete "${a.name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => { await deleteAccount(a.id); load(); } },
+    ]);
+  };
 
-    const handleDelete = (acc: Account) => {
-        Alert.alert('Delete Account', `Are you sure you want to delete "${acc.name}"?\nTransactions will be kept but unlinked.`, [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Delete',
-                style: 'destructive',
-                onPress: async () => {
-                    await deleteAccount(acc.id);
-                    if (editId === acc.id) resetForm();
-                    loadData();
-                }
-            },
-        ]);
-    };
+  const liquid = accounts.filter(a => a.type !== 'credit').reduce((s, a) => s + a.balance, 0);
+  const debt = Math.abs(accounts.filter(a => a.type === 'credit').reduce((s, a) => s + a.balance, 0));
 
-    const handleBalanceSave = async (id: number) => {
-        await updateAccountBalance(id, parseFloat(editBalanceVal) || 0);
-        setEditBalanceId(null); setEditBalanceVal('');
-        loadData();
-    };
+  return (
+    <SafeAreaView style={s.safe} edges={['top']}>
+      <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+        <TopBar title="Accounts" large
+          right={
+            <TouchableOpacity onPress={openAdd} style={s.addBtn}>
+              <Ionicons name="add" size={18} color={Colors.onHero} />
+            </TouchableOpacity>
+          }
+        />
 
-    const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
-
-    return (
-        <View style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                <View style={styles.header}>
-                    <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Accounts</NeonText>
-                    <TouchableOpacity onPress={() => showForm ? resetForm() : setShowForm(true)} style={{ paddingTop: Spacing.xxl }}>
-                        <Ionicons name={showForm ? 'close-outline' : 'add-circle-outline'} size={28} color={Colors.electricBlue} />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Total */}
-                <GlassCard style={styles.totalCard} glowColor={Colors.electricBlue}>
-                    <NeonText variant="label" color={Colors.textTertiary}>TOTAL BALANCE</NeonText>
-                    <NeonText variant="display" glow glowColor={Colors.electricBlue} color={totalBalance >= 0 ? Colors.electricBlue : Colors.neonPink}>
-                        {formatCurrency(totalBalance)}
-                    </NeonText>
-                </GlassCard>
-
-                {/* Transfer Button */}
-                <TouchableOpacity style={styles.transferBtn} onPress={() => navigation.navigate('TransferMoney')}>
-                    <Ionicons name="swap-horizontal-outline" size={20} color={Colors.electricBlue} />
-                    <NeonText variant="body" color={Colors.electricBlue}>Transfer Between Accounts</NeonText>
-                    <Ionicons name="chevron-forward-outline" size={18} color={Colors.textTertiary} />
-                </TouchableOpacity>
-
-                {/* Add/Edit Form */}
-                {showForm && (
-                    <GlassCard style={styles.form} glowColor={Colors.neonPurple}>
-                        <NeonText variant="subtitle">{editId ? 'Edit Account' : 'New Account'}</NeonText>
-                        <GlowInput label="Name" placeholder="e.g. BBVA, Cash" value={name} onChangeText={setName} />
-                        {!editId && (
-                            <GlowInput label="Initial Balance" placeholder="0.00" value={balance} onChangeText={setBalance} keyboardType="decimal-pad" />
-                        )}
-
-                        <NeonText variant="label" style={styles.label}>TYPE</NeonText>
-                        <View style={styles.typeRow}>
-                            {ACCOUNT_TYPES.map(t => (
-                                <TouchableOpacity key={t.value}
-                                    style={[styles.typeBtn, selectedType === t.value && { backgroundColor: `${selectedColor}30`, borderColor: selectedColor }]}
-                                    onPress={() => { setSelectedType(t.value); setSelectedIcon(t.icon); }}>
-                                    <Ionicons name={t.icon as any} size={16} color={selectedType === t.value ? selectedColor : Colors.textTertiary} />
-                                    <NeonText variant="caption" color={selectedType === t.value ? selectedColor : Colors.textTertiary}>{t.label}</NeonText>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        <NeonText variant="label" style={styles.label}>ICON</NeonText>
-                        <View style={styles.iconRow}>
-                            {ACCOUNT_ICONS.map(ic => (
-                                <TouchableOpacity key={ic}
-                                    style={[styles.iconBtn, selectedIcon === ic && { backgroundColor: `${selectedColor}30`, borderColor: selectedColor }]}
-                                    onPress={() => setSelectedIcon(ic)}>
-                                    <Ionicons name={ic as any} size={20} color={selectedIcon === ic ? selectedColor : Colors.textTertiary} />
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        <NeonText variant="label" style={styles.label}>COLOR</NeonText>
-                        <View style={styles.colorRow}>
-                            {CategoryColors.slice(0, 10).map(c => (
-                                <TouchableOpacity key={c}
-                                    style={[styles.colorBtn, { backgroundColor: c }, selectedColor === c && styles.colorBtnSelected]}
-                                    onPress={() => setSelectedColor(c)} />
-                            ))}
-                        </View>
-
-                        <NeonButton title={editId ? 'Update' : 'Add Account'} onPress={handleSave} variant="primary" fullWidth />
-
-                        {editId && (
-                            <View style={{ marginTop: Spacing.sm }}>
-                                <NeonButton
-                                    title="Delete Account"
-                                    onPress={() => handleDelete(accounts.find(a => a.id === editId)!)}
-                                    variant="danger"
-                                    fullWidth
-                                />
-                            </View>
-                        )}
-                    </GlassCard>
-                )}
-
-                {/* Account Cards */}
-                {accounts.map(acc => (
-                    <TouchableOpacity key={acc.id} onPress={() => handleEdit(acc)} onLongPress={() => handleDelete(acc)} activeOpacity={0.7}>
-                        <GlassCard style={styles.accountCard} glowColor={acc.color}>
-                            <View style={styles.accountRow}>
-                                <View style={[styles.accountIcon, { backgroundColor: `${acc.color}20` }]}>
-                                    <Ionicons name={acc.icon as any} size={22} color={acc.color} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <NeonText variant="body">{acc.name}</NeonText>
-                                    <NeonText variant="caption" color={Colors.textTertiary}>{acc.type.charAt(0).toUpperCase() + acc.type.slice(1)}</NeonText>
-                                </View>
-                                <View style={{ alignItems: 'flex-end' }}>
-                                    {editBalanceId === acc.id ? (
-                                        <View style={styles.editBalRow}>
-                                            <GlowInput
-                                                value={editBalanceVal} onChangeText={setEditBalanceVal}
-                                                keyboardType="numeric" glowColor={acc.color}
-                                                containerStyle={{ width: 120, marginBottom: 0 }}
-                                            />
-                                            <TouchableOpacity onPress={() => handleBalanceSave(acc.id)}>
-                                                <Ionicons name="checkmark-circle-outline" size={24} color={Colors.cyberGreen} />
-                                            </TouchableOpacity>
-                                        </View>
-                                    ) : (
-                                        <TouchableOpacity onPress={() => { setEditBalanceId(acc.id); setEditBalanceVal(String(acc.balance)); }}>
-                                            <NeonText variant="subtitle" color={acc.balance >= 0 ? acc.color : Colors.neonPink} glow glowColor={acc.color}>
-                                                {formatCurrency(acc.balance)}
-                                            </NeonText>
-                                        </TouchableOpacity>
-                                    )}
-                                </View>
-                            </View>
-                        </GlassCard>
-                    </TouchableOpacity>
-                ))}
-
-                {accounts.length === 0 && !showForm && (
-                    <View style={styles.empty}>
-                        <Ionicons name="wallet-outline" size={64} color={Colors.textMuted} />
-                        <NeonText variant="subtitle" color={Colors.textMuted}>No accounts</NeonText>
-                    </View>
-                )}
-
-                <View style={{ height: 100 }} />
-            </ScrollView>
+        {/* Net worth hero */}
+        <View style={s.padH}>
+          <HeroCard>
+            <Text style={s.heroLabel}>Net worth</Text>
+            <Amount value={totalBalance} size="xl" color={Colors.onHero} />
+            <View style={s.heroRow}>
+              <View>
+                <Text style={s.heroMiniLabel}>Liquid</Text>
+                <Amount value={liquid} size="sm" color={Colors.onHero} />
+              </View>
+              <View>
+                <Text style={s.heroMiniLabel}>Debt</Text>
+                <Amount value={debt} size="sm" color={Colors.negative} />
+              </View>
+              <TouchableOpacity onPress={() => navigation.navigate('TransferMoney')} style={s.transferBtn}>
+                <Ionicons name="repeat-outline" size={14} color={Colors.onAccent} />
+                <Text style={s.transferBtnText}>Transfer</Text>
+              </TouchableOpacity>
+            </View>
+          </HeroCard>
         </View>
-    );
+
+        {/* Accounts list */}
+        <SectionHeader label="Your accounts" action="Merchants"
+          onAction={() => navigation.navigate('Merchants')}
+          style={{ paddingTop: Spacing.xl, paddingBottom: Spacing.sm }} />
+        <View style={[s.padH, { gap: Spacing.sm }]}>
+          {accounts.map((acc) => (
+            <TouchableOpacity key={acc.id} onPress={() => openEdit(acc)} onLongPress={() => handleDelete(acc)} activeOpacity={0.75}>
+              <Card style={s.accCard}>
+                <View style={[s.accIcon, { backgroundColor: acc.color + '18' }]}>
+                  <Ionicons name={(acc.icon ?? 'card-outline') as any} size={20} color={acc.color} />
+                </View>
+                <View style={s.accInfo}>
+                  <Text style={s.accName}>{acc.name}</Text>
+                  <Text style={s.accType}>{acc.type}</Text>
+                </View>
+                <View style={s.accBalance}>
+                  <Amount value={acc.balance} size="sm" color={acc.balance < 0 ? Colors.negative : Colors.textPrimary} />
+                  <Text style={s.accCurrency}>MXN</Text>
+                </View>
+              </Card>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity onPress={openAdd} style={s.addCard}>
+            <Ionicons name="add-outline" size={16} color={Colors.textSecondary} />
+            <Text style={s.addCardText}>Add account</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      {/* Add/Edit modal */}
+      <Modal visible={showForm} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={s.modal}>
+          <View style={s.modalHeader}>
+            <Text style={s.modalTitle}>{editId ? 'Edit account' : 'New account'}</Text>
+            <TouchableOpacity onPress={() => setShowForm(false)} style={s.modalClose}>
+              <Ionicons name="close" size={18} color={Colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView contentContainerStyle={s.modalContent} showsVerticalScrollIndicator={false}>
+            <Text style={s.fieldLabel}>Name</Text>
+            <View style={s.field}>
+              <TextInput style={s.fieldInput} value={form.name}
+                onChangeText={v => setForm(f => ({ ...f, name: v }))}
+                placeholder="Account name" placeholderTextColor={Colors.textMuted} />
+            </View>
+
+            {!editId && (
+              <>
+                <Text style={s.fieldLabel}>Initial balance</Text>
+                <View style={s.field}>
+                  <TextInput style={s.fieldInput} value={form.balance}
+                    onChangeText={v => setForm(f => ({ ...f, balance: v }))}
+                    placeholder="0.00" placeholderTextColor={Colors.textMuted} keyboardType="decimal-pad" />
+                </View>
+              </>
+            )}
+
+            <Text style={s.fieldLabel}>Type</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.lg }}>
+              <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+                {ACCOUNT_TYPES.map(t => (
+                  <TouchableOpacity key={t.value} onPress={() => setForm(f => ({ ...f, type: t.value }))}
+                    style={[s.typeChip, form.type === t.value && s.typeChipActive]}>
+                    <Ionicons name={t.icon as any} size={16} color={form.type === t.value ? Colors.onAccent : Colors.textSecondary} />
+                    <Text style={[s.typeChipText, form.type === t.value && { color: Colors.onAccent }]}>{t.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <Text style={s.fieldLabel}>Icon</Text>
+            <View style={s.iconGrid}>
+              {ACCOUNT_ICONS.map(ic => (
+                <TouchableOpacity key={ic} onPress={() => setForm(f => ({ ...f, icon: ic }))}
+                  style={[s.iconOption, form.icon === ic && s.iconOptionActive]}>
+                  <Ionicons name={ic as any} size={20} color={form.icon === ic ? Colors.accent : Colors.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={s.fieldLabel}>Color</Text>
+            <View style={s.colorRow}>
+              {CategoryColors.slice(0, 8).map(c => (
+                <TouchableOpacity key={c} onPress={() => setForm(f => ({ ...f, color: c }))}
+                  style={[s.colorDot, { backgroundColor: c }, form.color === c && s.colorDotActive]} />
+              ))}
+            </View>
+
+            <View style={{ marginTop: Spacing.xxl }}>
+              <SumariButton onPress={handleSave} variant="primary" size="lg" fullWidth>
+                {editId ? 'Save changes' : 'Add account'}
+              </SumariButton>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+    </SafeAreaView>
+  );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
-    scrollContent: { paddingHorizontal: Spacing.lg },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.xl, paddingBottom: Spacing.md },
-    totalCard: { alignItems: 'center', marginBottom: Spacing.lg },
-    form: { marginBottom: Spacing.lg },
-    label: { marginBottom: Spacing.sm, color: Colors.textSecondary },
-    typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginBottom: Spacing.lg },
-    typeBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: Spacing.xs, paddingHorizontal: Spacing.md, borderRadius: BorderRadius.sm, borderWidth: 1, borderColor: Colors.border },
-    iconRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.lg },
-    iconBtn: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'transparent' },
-    colorRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.lg },
-    colorBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: 'transparent' },
-    colorBtnSelected: { borderColor: Colors.textPrimary, transform: [{ scale: 1.2 }] },
-    accountCard: { marginBottom: Spacing.sm },
-    accountRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    accountIcon: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-    editBalRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-    transferBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md, marginBottom: Spacing.lg, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.electricBlue, backgroundColor: `${Colors.electricBlue}10` },
-    empty: { alignItems: 'center', justifyContent: 'center', paddingTop: 100, gap: Spacing.md },
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  scroll: { flex: 1 },
+  content: { paddingBottom: 20 },
+  padH: { paddingHorizontal: Spacing.xl },
+  addBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.bgHero,
+    alignItems: 'center', justifyContent: 'center' },
+  heroLabel: { fontSize: 12, color: 'rgba(244,245,240,0.55)', textTransform: 'uppercase', letterSpacing: 1.6, marginBottom: 8 },
+  heroRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xl,
+    marginTop: Spacing.lg, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  heroMiniLabel: { fontSize: 10, color: 'rgba(244,245,240,0.5)', textTransform: 'uppercase', letterSpacing: 1 },
+  transferBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.accent,
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, marginLeft: 'auto' },
+  transferBtnText: { fontSize: 13, fontWeight: '600', color: Colors.onAccent },
+  accCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  accIcon: { width: 44, height: 44, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center' },
+  accInfo: { flex: 1, minWidth: 0 },
+  accName: { fontSize: 14, fontWeight: '600', color: Colors.textPrimary },
+  accType: { fontSize: 11, color: Colors.textTertiary, textTransform: 'capitalize', marginTop: 1 },
+  accBalance: { alignItems: 'flex-end' },
+  accCurrency: { fontSize: 10, color: Colors.textTertiary, marginTop: 2 },
+  addCard: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: Colors.borderStrong,
+    borderRadius: BorderRadius.lg, padding: Spacing.lg,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  addCardText: { fontSize: 14, color: Colors.textSecondary, fontWeight: '500' },
+  modal: { flex: 1, backgroundColor: Colors.bg },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, paddingBottom: Spacing.lg },
+  modalTitle: { fontSize: 22, fontWeight: '600', color: Colors.textPrimary, letterSpacing: -0.4 },
+  modalClose: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.bgCardAlt,
+    alignItems: 'center', justifyContent: 'center' },
+  modalContent: { paddingHorizontal: Spacing.xl, paddingBottom: 40 },
+  fieldLabel: { fontSize: 11, fontWeight: '500', color: Colors.textTertiary,
+    textTransform: 'uppercase', letterSpacing: 1.4, marginBottom: 8, marginTop: Spacing.lg },
+  field: { backgroundColor: Colors.bgCard, borderRadius: BorderRadius.md,
+    borderWidth: 1, borderColor: Colors.border, paddingHorizontal: Spacing.lg, paddingVertical: 14 },
+  fieldInput: { fontSize: 15, color: Colors.textPrimary },
+  typeChip: { flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
+    backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border },
+  typeChipActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
+  typeChipText: { fontSize: 13, fontWeight: '500', color: Colors.textSecondary },
+  iconGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.lg },
+  iconOption: { width: 44, height: 44, borderRadius: BorderRadius.sm, backgroundColor: Colors.bgCard,
+    borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  iconOptionActive: { borderColor: Colors.accent, backgroundColor: Colors.accentSoft },
+  colorRow: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
+  colorDot: { width: 32, height: 32, borderRadius: 16 },
+  colorDotActive: { borderWidth: 3, borderColor: Colors.textPrimary },
 });

@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { GlassCard, NeonText, CategoryIcon } from '../components';
 import { Colors, Spacing, BorderRadius, FontSize, FontWeight } from '../theme';
@@ -144,7 +143,7 @@ export const PlannedBudgetScreen: React.FC = () => {
     ].sort((a, b) => {
         const dateA = a.kind === 'income' ? a.data.expected_date : a.data.planned_date;
         const dateB = b.kind === 'income' ? b.data.expected_date : b.data.planned_date;
-        return dateA.localeCompare(dateB);
+        return dateA > dateB ? 1 : dateA < dateB ? -1 : 0;
     });
 
     // Group by date
@@ -169,9 +168,6 @@ export const PlannedBudgetScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            {/* Ambient glow */}
-            <View style={styles.glow1} pointerEvents="none" />
-            <View style={styles.glow2} pointerEvents="none" />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
                 {/* Header */}
@@ -219,14 +215,10 @@ export const PlannedBudgetScreen: React.FC = () => {
                     {totalPlannedExpense > 0 && (
                         <View style={styles.progressRow}>
                             <View style={styles.progressTrack}>
-                                <LinearGradient
-                                    colors={[Colors.cyberGreen, Colors.electricBlue] as [string, string]}
-                                    style={[styles.progressFill, {
-                                        width: `${Math.min(100, Math.round((completedExpenses / totalPlannedExpense) * 100))}%`
-                                    }]}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 0 }}
-                                />
+                                <View style={[styles.progressFill, {
+                                    width: `${Math.min(100, Math.round((completedExpenses / totalPlannedExpense) * 100))}%`,
+                                    backgroundColor: Colors.cyberGreen,
+                                }]} />
                             </View>
                             <NeonText variant="caption" color={Colors.textTertiary} style={{ marginTop: 4 }}>
                                 {Math.round((completedExpenses / totalPlannedExpense) * 100)}% completed
@@ -239,26 +231,16 @@ export const PlannedBudgetScreen: React.FC = () => {
                 {/* Action buttons */}
                 <View style={styles.actionRow}>
                     <TouchableOpacity style={styles.actionBtn} onPress={() => openModal('income')} activeOpacity={0.8}>
-                        <LinearGradient
-                            colors={[Colors.cyberGreen, Colors.electricBlue] as [string, string]}
-                            style={styles.actionBtnGrad}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
+                        <View style={[styles.actionBtnGrad, { backgroundColor: Colors.cyberGreen }]}>
                             <Ionicons name="arrow-down-circle-outline" size={18} color="#FFF" />
                             <NeonText variant="body" color="#FFF" style={{ fontWeight: '700' }}>+ Income</NeonText>
-                        </LinearGradient>
+                        </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionBtn} onPress={() => openModal('expense')} activeOpacity={0.8}>
-                        <LinearGradient
-                            colors={[Colors.neonPink, Colors.neonOrange] as [string, string]}
-                            style={styles.actionBtnGrad}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
+                        <View style={[styles.actionBtnGrad, { backgroundColor: Colors.neonPink }]}>
                             <Ionicons name="arrow-up-circle-outline" size={18} color="#FFF" />
                             <NeonText variant="body" color="#FFF" style={{ fontWeight: '700' }}>+ Expense</NeonText>
-                        </LinearGradient>
+                        </View>
                     </TouchableOpacity>
                 </View>
 
@@ -305,18 +287,11 @@ export const PlannedBudgetScreen: React.FC = () => {
                                                     activeOpacity={0.85}
                                                 >
                                                     <View style={[styles.eventCard, styles.incomeCard]}>
-                                                        <LinearGradient
-                                                            colors={['rgba(48,209,88,0.15)', 'rgba(90,200,250,0.08)'] as [string, string]}
-                                                            style={StyleSheet.absoluteFill}
-                                                        />
                                                         <View style={[styles.eventStripe, { backgroundColor: Colors.cyberGreen }]} />
                                                         <View style={styles.eventIconWrap}>
-                                                            <LinearGradient
-                                                                colors={[Colors.cyberGreen, Colors.electricBlue] as [string, string]}
-                                                                style={styles.eventIconBg}
-                                                            >
+                                                            <View style={[styles.eventIconBg, { backgroundColor: Colors.cyberGreen }]}>
                                                                 <Ionicons name="arrow-down-circle" size={16} color="#FFF" />
-                                                            </LinearGradient>
+                                                            </View>
                                                         </View>
                                                         <View style={styles.eventInfo}>
                                                             <NeonText variant="body" style={{ fontWeight: '600' }}>{item.name}</NeonText>
@@ -338,12 +313,6 @@ export const PlannedBudgetScreen: React.FC = () => {
                                                     activeOpacity={0.85}
                                                 >
                                                     <View style={[styles.eventCard, styles.expenseCard, item.is_completed && styles.completedCard]}>
-                                                        {!item.is_completed && (
-                                                            <LinearGradient
-                                                                colors={['rgba(255,55,95,0.12)', 'rgba(255,159,10,0.06)'] as [string, string]}
-                                                                style={StyleSheet.absoluteFill}
-                                                            />
-                                                        )}
                                                         <View style={[styles.eventStripe, { backgroundColor: item.is_completed ? Colors.textMuted : Colors.neonPink }]} />
                                                         <View style={styles.eventIconWrap}>
                                                             {item.is_completed ? (
@@ -357,12 +326,9 @@ export const PlannedBudgetScreen: React.FC = () => {
                                                                     size={32}
                                                                 />
                                                             ) : (
-                                                                <LinearGradient
-                                                                    colors={[Colors.neonPink, Colors.neonOrange] as [string, string]}
-                                                                    style={styles.eventIconBg}
-                                                                >
+                                                                <View style={[styles.eventIconBg, { backgroundColor: Colors.neonPink }]}>
                                                                     <Ionicons name="arrow-up-circle" size={16} color="#FFF" />
-                                                                </LinearGradient>
+                                                                </View>
                                                             )}
                                                         </View>
                                                         <View style={styles.eventInfo}>
@@ -527,19 +493,11 @@ export const PlannedBudgetScreen: React.FC = () => {
 
                         {/* Save button */}
                         <TouchableOpacity onPress={handleSave} activeOpacity={0.85} style={styles.saveBtn}>
-                            <LinearGradient
-                                colors={modalMode === 'income'
-                                    ? [Colors.cyberGreen, Colors.electricBlue] as [string, string]
-                                    : [Colors.neonPink, Colors.neonOrange] as [string, string]
-                                }
-                                style={styles.saveBtnGrad}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                            >
+                            <View style={[styles.saveBtnGrad, { backgroundColor: modalMode === 'income' ? Colors.cyberGreen : Colors.neonPink }]}>
                                 <NeonText variant="body" color="#FFF" style={{ fontWeight: '700' }}>
                                     Save {modalMode === 'income' ? 'Income' : 'Expense'}
                                 </NeonText>
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>
@@ -550,25 +508,17 @@ export const PlannedBudgetScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
-    glow1: {
-        position: 'absolute', width: 280, height: 280, borderRadius: 140,
-        backgroundColor: 'rgba(48,209,88,0.06)', top: -60, right: -60,
-    },
-    glow2: {
-        position: 'absolute', width: 240, height: 240, borderRadius: 120,
-        backgroundColor: 'rgba(191,90,242,0.05)', top: 200, left: -60,
-    },
     scroll: { paddingHorizontal: Spacing.lg, paddingTop: Platform.OS === 'android' ? 48 : 56 },
     header: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xl, gap: Spacing.md },
     backBtn: { padding: Spacing.xs },
     summaryCard: { marginBottom: Spacing.lg },
     summaryRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.lg },
     summaryItem: { flex: 1 },
-    summaryDivider: { width: 1, height: 48, backgroundColor: 'rgba(255,255,255,0.10)', marginHorizontal: Spacing.lg },
+    summaryDivider: { width: 1, height: 48, backgroundColor: 'rgba(31,204,88,0.12)', marginHorizontal: Spacing.lg },
     remainingRow: { alignItems: 'flex-start', gap: 4 },
     progressRow: { marginTop: Spacing.md },
     progressTrack: {
-        height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.08)',
+        height: 6, borderRadius: 3, backgroundColor: '#1A5C38',
         overflow: 'hidden',
     },
     progressFill: { height: 6, borderRadius: 3 },
@@ -578,18 +528,18 @@ const styles = StyleSheet.create({
     timeline: { marginBottom: Spacing.lg },
     dateGroup: { marginBottom: Spacing.lg },
     dateHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm, gap: Spacing.sm },
-    dateDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.electricBlue },
+    dateDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1FCC58' },
     dateText: { flex: 1 },
     runningBalance: { fontWeight: '700' },
-    eventsContainer: { marginLeft: 20, borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.06)', paddingLeft: Spacing.md, gap: Spacing.sm },
+    eventsContainer: { marginLeft: 20, borderLeftWidth: 1, borderLeftColor: 'rgba(31,204,88,0.08)', paddingLeft: Spacing.md, gap: Spacing.sm },
     eventCard: {
         flexDirection: 'row', alignItems: 'center', borderRadius: BorderRadius.md,
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+        borderWidth: 1, borderColor: 'rgba(31,204,88,0.08)',
         padding: Spacing.md, gap: Spacing.md, overflow: 'hidden',
     },
     incomeCard: { borderColor: 'rgba(48,209,88,0.20)' },
     expenseCard: { borderColor: 'rgba(255,55,95,0.18)' },
-    completedCard: { opacity: 0.55, borderColor: 'rgba(255,255,255,0.06)' },
+    completedCard: { opacity: 0.55, borderColor: 'rgba(31,204,88,0.06)' },
     eventStripe: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
     eventIconWrap: { width: 32, alignItems: 'center' },
     eventIconBg: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
@@ -598,28 +548,28 @@ const styles = StyleSheet.create({
     // Modal
     modalOverlay: { flex: 1, justifyContent: 'flex-end' },
     modalSheet: {
-        backgroundColor: '#16162A',
+        backgroundColor: '#162016',
         borderTopLeftRadius: 28, borderTopRightRadius: 28,
         padding: Spacing.xl,
         paddingBottom: Platform.OS === 'ios' ? 40 : Spacing.xl,
-        borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.10)',
+        borderTopWidth: 1, borderTopColor: 'rgba(31,204,88,0.10)',
     },
-    handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.20)', alignSelf: 'center', marginBottom: Spacing.xl },
+    handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#6B8F74', alignSelf: 'center', marginBottom: Spacing.xl },
     inputWrap: { marginBottom: Spacing.md },
     inputLabel: { marginBottom: 6 },
     input: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+        backgroundColor: '#101710',
+        borderWidth: 1, borderColor: '#1A5C38',
         borderRadius: BorderRadius.md,
         paddingHorizontal: Spacing.md, paddingVertical: Spacing.md,
-        color: Colors.textPrimary, fontSize: FontSize.md,
+        color: '#F0F5F1', fontSize: FontSize.md,
     },
     chipRow: { flexDirection: 'row', gap: Spacing.sm },
     chip: {
         paddingVertical: Spacing.xs, paddingHorizontal: Spacing.md,
-        borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border,
+        borderRadius: BorderRadius.full, borderWidth: 1, borderColor: 'rgba(31,204,88,0.10)',
     },
-    chipActive: { backgroundColor: `${Colors.electricBlue}20`, borderColor: Colors.electricBlue },
+    chipActive: { backgroundColor: 'rgba(31,204,88,0.14)', borderColor: '#1FCC58' },
     saveBtn: { borderRadius: BorderRadius.md, overflow: 'hidden', marginTop: Spacing.sm },
     saveBtnGrad: { paddingVertical: Spacing.md + 2, alignItems: 'center' },
 });

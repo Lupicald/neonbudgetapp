@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, SectionList, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassCard, NeonText } from '../components';
@@ -76,7 +77,7 @@ export const TimelineScreen: React.FC = () => {
     useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Financial Timeline</NeonText>
             </View>
@@ -134,12 +135,12 @@ export const TimelineScreen: React.FC = () => {
                     </View>
                 )}
             />
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
     listContent: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
     empty: { alignItems: 'center', justifyContent: 'center', paddingTop: 100, gap: Spacing.md },

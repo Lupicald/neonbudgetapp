@@ -3,9 +3,9 @@ import {
     View, ScrollView, StyleSheet, TouchableOpacity, Alert,
     TextInput, Modal, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { format, parseISO } from 'date-fns';
 import { GlassCard, NeonText, CategoryIcon } from '../components';
@@ -13,7 +13,7 @@ import { Colors, Spacing, BorderRadius, FontSize } from '../theme';
 import {
     getRecurringItems, addRecurringItem, updateRecurringItem,
     deleteRecurringItem, toggleRecurringItem, recordRecurringPayment,
-    generateFutureOccurrences,
+    skipRecurringPayment, generateFutureOccurrences,
 } from '../database/recurringService';
 import { getCategories } from '../database/categoryService';
 import {
@@ -21,6 +21,7 @@ import {
 } from '../database/plannedBudgetService';
 import { RecurringItem, Category, RecurringFrequency, TransactionType, PlannedExpense } from '../types';
 import { formatCurrency, getDayOfWeekName, toISODateString } from '../utils';
+import { refreshRecurringReminders } from '../services/notificationService';
 
 interface Props { type?: TransactionType; }
 
@@ -59,6 +60,7 @@ const freqLabel = (item: RecurringItem): string => {
 };
 
 export const RecurringScreen: React.FC<Props> = () => {
+    const navigation = useNavigation<any>();
     const [tab, setTab] = useState<MainTab>('income');
     const [items, setItems] = useState<RecurringItem[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -73,6 +75,7 @@ export const RecurringScreen: React.FC<Props> = () => {
     const [dayOfMonthStr, setDayOfMonthStr] = useState('1');
     const [intervalDays, setIntervalDays] = useState('30');
     const [selectedCat, setSelectedCat] = useState<Category | null>(null);
+    const [nextDateStr, setNextDateStr] = useState('');
 
     // planner
     const [plannerItems, setPlannerItems] = useState<PlannedExpense[]>([]);
@@ -91,6 +94,8 @@ export const RecurringScreen: React.FC<Props> = () => {
         setItems(ri as RecurringItem[]);
         setCategories(cats);
         if (!selectedCat && cats.length > 0) setSelectedCat(cats[0]);
+        // Refresh notification reminders whenever recurring items reload
+        refreshRecurringReminders(ri as RecurringItem[]).catch(() => {});
 
         const monthStr = format(new Date(), 'yyyy-MM');
         const oneTime = allExpenses.filter(
@@ -104,6 +109,7 @@ export const RecurringScreen: React.FC<Props> = () => {
     const resetForm = () => {
         setEditId(null); setName(''); setAmount('');
         setFrequency('monthly'); setDayOfWeek(4); setDayOfMonthStr('1'); setIntervalDays('30');
+        setNextDateStr('');
         if (categories.length > 0) setSelectedCat(categories[0]);
     };
 
@@ -114,6 +120,7 @@ export const RecurringScreen: React.FC<Props> = () => {
         setFrequency(item.frequency); setDayOfWeek(item.day_of_week ?? 4);
         setDayOfMonthStr(String(item.day_of_month ?? 1));
         setIntervalDays(item.interval_days.toString());
+        setNextDateStr(item.next_date || '');
         const cat = categories.find(c => c.id === item.category_id);
         if (cat) setSelectedCat(cat);
         setModalOpen(true);
@@ -128,7 +135,8 @@ export const RecurringScreen: React.FC<Props> = () => {
         const today = toISODateString(new Date());
 
         if (editId) {
-            await updateRecurringItem(editId, name.trim(), num, selectedCat.id, frequency, intv, dow, dom, today);
+            const customNext = nextDateStr.trim().match(/^\d{4}-\d{2}-\d{2}$/) ? nextDateStr.trim() : undefined;
+            await updateRecurringItem(editId, name.trim(), num, selectedCat.id, frequency, intv, dow, dom, today, customNext);
         } else {
             await addRecurringItem(tab === 'planner' ? 'expense' : tab, name.trim(), num, selectedCat.id, frequency, intv, dow, dom, today);
         }
@@ -153,6 +161,21 @@ export const RecurringScreen: React.FC<Props> = () => {
                     try {
                         await recordRecurringPayment(item.id);
                         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        load();
+                    } catch (e: any) { Alert.alert('Error', e?.message); }
+                }
+            },
+        ]);
+    };
+
+    const handleSkip = (item: RecurringItem) => {
+        Alert.alert('Skip Payment', `Skip "${item.name}" — next date will advance without recording a transaction.`, [
+            { text: 'Cancel', style: 'cancel' },
+            {
+                text: 'Skip', onPress: async () => {
+                    try {
+                        await skipRecurringPayment(item.id);
+                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
                         load();
                     } catch (e: any) { Alert.alert('Error', e?.message); }
                 }
@@ -201,7 +224,7 @@ export const RecurringScreen: React.FC<Props> = () => {
             icon: e.category_icon, color: e.category_color,
         }));
 
-        return [...recurring, ...oneTime].sort((a, b) => a.date.localeCompare(b.date));
+        return [...recurring, ...oneTime].sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0);
     };
 
     const filtered = items.filter(i => i.type === tab);
@@ -211,38 +234,30 @@ export const RecurringScreen: React.FC<Props> = () => {
     const monthlyNet = incomeTotal - expenseTotal;
 
     return (
-        <View style={s.container}>
+        <SafeAreaView style={s.container} edges={['top']}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
                 {/* Header */}
                 <View style={s.header}>
-                    <View>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: Spacing.md, padding: 4 }}>
+                        <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
+                    </TouchableOpacity>
+                    <View style={{ flex: 1 }}>
                         <NeonText variant="caption" color={Colors.textMuted} style={{ letterSpacing: 1.5 }}>AUTOMATION</NeonText>
                         <NeonText variant="title">Recurring</NeonText>
                     </View>
                     {tab !== 'planner' && (
                         <TouchableOpacity onPress={openAdd} style={s.addBtn} activeOpacity={0.8}>
-                            <LinearGradient
-                                colors={accentColor === Colors.cyberGreen
-                                    ? [Colors.cyberGreen, Colors.cyberGreenDark] as [string, string]
-                                    : [Colors.neonPink, Colors.neonPinkDark] as [string, string]
-                                }
-                                style={s.addBtnGrad}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                            >
+                            <View style={[s.addBtnGrad, { backgroundColor: accentColor }]}>
                                 <Ionicons name="add" size={22} color="#FFF" />
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                     )}
                     {tab === 'planner' && (
                         <TouchableOpacity onPress={() => setPlannerModal(true)} style={s.addBtn} activeOpacity={0.8}>
-                            <LinearGradient
-                                colors={['#F59E0B', '#D97706'] as [string, string]}
-                                style={s.addBtnGrad}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                            >
+                            <View style={[s.addBtnGrad, { backgroundColor: Colors.neonOrange }]}>
                                 <Ionicons name="add" size={22} color="#FFF" />
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -277,22 +292,10 @@ export const RecurringScreen: React.FC<Props> = () => {
                 {/* Tabs */}
                 <View style={s.tabs}>
                     {(['income', 'expense', 'planner'] as MainTab[]).map(t => {
-                        const color = t === 'income' ? Colors.cyberGreen : t === 'expense' ? Colors.neonPink : '#F59E0B';
-                        const gradColors: [string, string] = t === 'income'
-                            ? [Colors.cyberGreen, Colors.cyberGreenDark]
-                            : t === 'expense'
-                                ? [Colors.neonPink, Colors.neonPinkDark]
-                                : ['#F59E0B', '#D97706'];
+                        const color = t === 'income' ? Colors.cyberGreen : t === 'expense' ? Colors.neonPink : Colors.neonOrange;
                         const icon = t === 'income' ? 'arrow-down-circle-outline' : t === 'expense' ? 'arrow-up-circle-outline' : 'calendar-outline';
                         return (
-                            <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)} activeOpacity={0.8}>
-                                {tab === t && (
-                                    <LinearGradient
-                                        colors={gradColors}
-                                        style={StyleSheet.absoluteFill}
-                                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                    />
-                                )}
+                            <TouchableOpacity key={t} style={[s.tab, tab === t && { ...s.tabActive, backgroundColor: color }]} onPress={() => setTab(t)} activeOpacity={0.8}>
                                 <Ionicons name={icon as any} size={14} color={tab === t ? '#FFF' : Colors.textTertiary} />
                                 <NeonText
                                     variant="caption"
@@ -350,6 +353,9 @@ export const RecurringScreen: React.FC<Props> = () => {
                                         <View style={s.itemActions}>
                                             <TouchableOpacity style={[s.actionChip, { borderColor: accentColor + '40' }]} onPress={() => handlePayNow(item)}>
                                                 <NeonText variant="caption" color={accentColor}>Record now</NeonText>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={[s.actionChip, { borderColor: Colors.textMuted + '60' }]} onPress={() => handleSkip(item)}>
+                                                <NeonText variant="caption" color={Colors.textMuted}>Skip</NeonText>
                                             </TouchableOpacity>
                                             <TouchableOpacity onPress={() => openEdit(item)} style={s.iconBtn}>
                                                 <Ionicons name="pencil-outline" size={15} color={Colors.electricBlue} />
@@ -415,7 +421,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                                                     <NeonText variant="caption" color={Colors.textMuted}>{event.date}</NeonText>
                                                     <NeonText variant="body" style={{ fontWeight: '600' }} numberOfLines={1}>{event.name}</NeonText>
                                                     {event.isOneTime && (
-                                                        <NeonText variant="caption" color="#F59E0B">one-time</NeonText>
+                                                        <NeonText variant="caption" color={Colors.neonOrange}>one-time</NeonText>
                                                     )}
                                                 </View>
                                                 <View style={{ alignItems: 'flex-end', gap: 2 }}>
@@ -468,13 +474,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                         {!editId && tab !== 'planner' && (
                             <View style={[s.tabs, { marginBottom: Spacing.lg }]}>
                                 {(['income', 'expense'] as TransactionType[]).map(t => (
-                                    <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t as MainTab)}>
-                                        {tab === t && (
-                                            <LinearGradient
-                                                colors={t === 'income' ? [Colors.cyberGreen, Colors.cyberGreenDark] as [string, string] : [Colors.neonPink, Colors.neonPinkDark] as [string, string]}
-                                                style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                            />
-                                        )}
+                                    <TouchableOpacity key={t} style={[s.tab, tab === t && { ...s.tabActive, backgroundColor: t === 'income' ? Colors.cyberGreen : Colors.neonPink }]} onPress={() => setTab(t as MainTab)}>
                                         <NeonText variant="caption" color={tab === t ? '#FFF' : Colors.textTertiary} style={{ fontWeight: tab === t ? '700' : '400' }}>
                                             {t === 'income' ? 'Income' : 'Expense'}
                                         </NeonText>
@@ -561,19 +561,25 @@ export const RecurringScreen: React.FC<Props> = () => {
                             </View>
                         </ScrollView>
 
+                        {editId && (
+                            <View style={s.fInput}>
+                                <NeonText variant="label" color={Colors.textMuted} style={s.fLabel}>NEXT PAYMENT DATE</NeonText>
+                                <TextInput
+                                    style={s.input}
+                                    value={nextDateStr}
+                                    onChangeText={setNextDateStr}
+                                    placeholder="YYYY-MM-DD"
+                                    placeholderTextColor={Colors.textMuted}
+                                />
+                            </View>
+                        )}
+
                         <TouchableOpacity onPress={handleSave} activeOpacity={0.85} style={s.saveBtn}>
-                            <LinearGradient
-                                colors={accentColor === Colors.cyberGreen
-                                    ? [Colors.cyberGreen, Colors.cyberGreenDark] as [string, string]
-                                    : [Colors.neonPink, Colors.neonPinkDark] as [string, string]
-                                }
-                                style={s.saveBtnGrad}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                            >
+                            <View style={[s.saveBtnGrad, { backgroundColor: accentColor }]}>
                                 <NeonText variant="body" color="#FFF" style={{ fontWeight: '700' }}>
                                     {editId ? 'Update' : 'Save'}
                                 </NeonText>
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                     </ScrollView>
                 </KeyboardAvoidingView>
@@ -607,7 +613,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.lg }}>
                             <View style={s.chipRow}>
                                 <TouchableOpacity
-                                    style={[s.catChip, pCat === null && { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: Colors.textTertiary }]}
+                                    style={[s.catChip, pCat === null && { backgroundColor: '#1A5C38', borderColor: '#1FCC58' }]}
                                     onPress={() => setPCat(null)}
                                 >
                                     <Ionicons name="close-circle-outline" size={24} color={Colors.textMuted} />
@@ -626,24 +632,20 @@ export const RecurringScreen: React.FC<Props> = () => {
                         </ScrollView>
 
                         <TouchableOpacity onPress={handleAddPlannerExpense} activeOpacity={0.85} style={s.saveBtn}>
-                            <LinearGradient
-                                colors={['#F59E0B', '#D97706'] as [string, string]}
-                                style={s.saveBtnGrad}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                            >
+                            <View style={[s.saveBtnGrad, { backgroundColor: Colors.neonOrange }]}>
                                 <NeonText variant="body" color="#FFF" style={{ fontWeight: '700' }}>Add to Planner</NeonText>
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
-    scroll: { paddingHorizontal: Spacing.lg, paddingTop: Platform.OS === 'android' ? 48 : 56 },
+    container: { flex: 1, backgroundColor: Colors.bg },
+    scroll: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xl },
     addBtn: {},
     addBtnGrad: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
@@ -689,15 +691,15 @@ const s = StyleSheet.create({
     // modals
     overlay: { flex: 1, justifyContent: 'flex-end' },
     sheet: {
-        backgroundColor: '#141414', borderTopLeftRadius: 28, borderTopRightRadius: 28,
+        backgroundColor: Colors.backgroundLight, borderTopLeftRadius: 28, borderTopRightRadius: 28,
         padding: Spacing.xl, borderTopWidth: 1, borderTopColor: Colors.borderLight,
         maxHeight: '90%',
     },
-    handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)', alignSelf: 'center', marginBottom: Spacing.xl },
+    handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#6B8F74', alignSelf: 'center', marginBottom: Spacing.xl },
     fInput: { marginBottom: Spacing.md },
     fLabel: { marginBottom: 6, letterSpacing: 0.8 },
     input: {
-        backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: Colors.border,
+        backgroundColor: '#101710', borderWidth: 1, borderColor: 'rgba(31,204,88,0.10)',
         borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.md,
         color: Colors.textPrimary, fontSize: FontSize.md,
     },

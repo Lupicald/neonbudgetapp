@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "NeonBudget",
-    "slug": "neonbudget",
+    "name": "Sumari",
+    "slug": "sumari",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,13 +9,13 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0a1a"
+      "backgroundColor": "#0B0D0C"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "package": "com.neonbudget.app",
+      "package": "com.sumari.app",
       "adaptiveIcon": {
         "backgroundColor": "#0a0a1a",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -31,7 +31,15 @@
     "plugins": [
       "expo-sqlite",
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#39FF85",
+          "defaultChannel": "reminders"
+        }
+      ]
     ],
     "extra": {
       "eas": {

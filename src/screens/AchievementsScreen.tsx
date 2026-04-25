@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassCard, NeonText } from '../components';
@@ -15,7 +16,7 @@ export const AchievementsScreen: React.FC = () => {
     }, []));
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Achievements</NeonText>
                 <NeonText variant="caption" color={Colors.textTertiary} style={{ paddingTop: Spacing.xxl }}>
@@ -60,12 +61,12 @@ export const AchievementsScreen: React.FC = () => {
                     );
                 }}
             />
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
     grid: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
     badge: { flex: 1, alignItems: 'center', gap: Spacing.xs, marginBottom: Spacing.md, paddingVertical: Spacing.lg },

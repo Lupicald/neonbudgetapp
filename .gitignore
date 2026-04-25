@@ -1,5 +1,11 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+# Claude Code local config & memory (contains personal data)
+.claude/
+
+# AI assistant prompt files
+GEMINI.md
+
 # dependencies
 node_modules/
 

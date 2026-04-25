@@ -14,7 +14,6 @@ import {
     Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NeonText } from './NeonText';
 import { GlassCard } from './GlassCard';
@@ -294,14 +293,10 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                             onPress={goNext}
                             disabled={!data.importance}
                         >
-                            <LinearGradient
-                                colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                                style={styles.nextBtnGrad}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                            >
+                            <View style={[styles.nextBtnGrad, { backgroundColor: Colors.accent }]}>
                                 <NeonText variant="body" color="#fff" style={{ fontWeight: '700' }}>Siguiente</NeonText>
                                 <Ionicons name="arrow-forward" size={18} color="#fff" />
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                     </View>
                 );
@@ -355,14 +350,10 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                                 onPress={goNext}
                                 disabled={!data.category}
                             >
-                                <LinearGradient
-                                    colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                                    style={styles.nextBtnGrad}
-                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                >
+                                <View style={[styles.nextBtnGrad, { backgroundColor: Colors.accent }]}>
                                     <NeonText variant="body" color="#fff" style={{ fontWeight: '700' }}>Siguiente</NeonText>
                                     <Ionicons name="arrow-forward" size={18} color="#fff" />
-                                </LinearGradient>
+                                </View>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -409,14 +400,10 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                                 onPress={goNext}
                                 disabled={!data.account}
                             >
-                                <LinearGradient
-                                    colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                                    style={styles.nextBtnGrad}
-                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                >
+                                <View style={[styles.nextBtnGrad, { backgroundColor: Colors.accent }]}>
                                     <NeonText variant="body" color="#fff" style={{ fontWeight: '700' }}>Siguiente</NeonText>
                                     <Ionicons name="arrow-forward" size={18} color="#fff" />
-                                </LinearGradient>
+                                </View>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -447,16 +434,12 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                                 <NeonText variant="caption" color={Colors.textTertiary}>Atrás</NeonText>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.nextBtn} onPress={goNext}>
-                                <LinearGradient
-                                    colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                                    style={styles.nextBtnGrad}
-                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                >
+                                <View style={[styles.nextBtnGrad, { backgroundColor: Colors.accent }]}>
                                     <NeonText variant="body" color="#fff" style={{ fontWeight: '700' }}>
                                         {data.vendor.trim() ? 'Siguiente' : 'Omitir'}
                                     </NeonText>
                                     <Ionicons name="arrow-forward" size={18} color="#fff" />
-                                </LinearGradient>
+                                </View>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -510,11 +493,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                                 onPress={computeRecommendation}
                                 disabled={loading}
                             >
-                                <LinearGradient
-                                    colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                                    style={styles.nextBtnGrad}
-                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                >
+                                <View style={[styles.nextBtnGrad, { backgroundColor: Colors.accent }]}>
                                     {loading ? (
                                         <ActivityIndicator color="#fff" size="small" />
                                     ) : (
@@ -523,7 +502,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                                             <Ionicons name="sparkles" size={18} color="#fff" />
                                         </>
                                     )}
-                                </LinearGradient>
+                                </View>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -535,12 +514,9 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                 return (
                     <View style={styles.stepContent}>
                         <View style={styles.resultIconWrapper}>
-                            <LinearGradient
-                                colors={[`${recommendation.color}30`, `${recommendation.color}08`] as [string, string]}
-                                style={styles.resultIconBg}
-                            >
+                            <View style={[styles.resultIconBg, { backgroundColor: `${recommendation.color}20` }]}>
                                 <Ionicons name={recommendation.icon as any} size={56} color={recommendation.color} />
-                            </LinearGradient>
+                            </View>
                         </View>
                         <NeonText
                             variant="title"
@@ -588,14 +564,10 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                         </View>
 
                         <TouchableOpacity style={styles.registerBtn} onPress={handleRegister} activeOpacity={0.85}>
-                            <LinearGradient
-                                colors={[Colors.neonPurple, Colors.electricBlue] as [string, string]}
-                                style={styles.nextBtnGrad}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                            >
+                            <View style={[styles.nextBtnGrad, { backgroundColor: Colors.accent }]}>
                                 <Ionicons name="add-circle-outline" size={20} color="#fff" />
                                 <NeonText variant="body" color="#fff" style={{ fontWeight: '700' }}>Registrar gasto de todos modos</NeonText>
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
                             <NeonText variant="body" color={Colors.textTertiary}>Cancelar</NeonText>
@@ -678,24 +650,8 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.background,
     },
-    bgGlow1: {
-        position: 'absolute',
-        width: 300,
-        height: 300,
-        borderRadius: 150,
-        backgroundColor: 'rgba(191, 90, 242, 0.08)',
-        top: -80,
-        left: -60,
-    },
-    bgGlow2: {
-        position: 'absolute',
-        width: 220,
-        height: 220,
-        borderRadius: 110,
-        backgroundColor: 'rgba(10, 132, 255, 0.06)',
-        bottom: 100,
-        right: -50,
-    },
+    bgGlow1: { display: 'none' },
+    bgGlow2: { display: 'none' },
     modalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -704,13 +660,13 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'ios' ? Spacing.lg : Spacing.xxxl,
         paddingBottom: Spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.06)',
+        borderBottomColor: 'rgba(31,204,88,0.08)',
     },
     closeBtn: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: 'rgba(255,255,255,0.06)',
+        backgroundColor: '#1A5C38',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -728,7 +684,7 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: 'rgba(255,255,255,0.12)',
+        backgroundColor: '#1A5C38',
     },
     dotDone: {
         backgroundColor: Colors.electricBlue,
@@ -767,8 +723,8 @@ const styles = StyleSheet.create({
         padding: Spacing.lg,
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        backgroundColor: 'rgba(255,255,255,0.04)',
+        borderColor: 'rgba(31,204,88,0.10)',
+        backgroundColor: '#101710',
         marginBottom: Spacing.sm,
     },
     listScroll: {
@@ -782,8 +738,8 @@ const styles = StyleSheet.create({
         padding: Spacing.md,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
-        backgroundColor: 'rgba(255,255,255,0.04)',
+        borderColor: 'rgba(31,204,88,0.08)',
+        backgroundColor: '#101710',
         marginBottom: Spacing.xs,
     },
     categoryDot: {
@@ -804,9 +760,9 @@ const styles = StyleSheet.create({
         marginTop: Spacing.xs,
     },
     textInput: {
-        backgroundColor: 'rgba(255,255,255,0.06)',
+        backgroundColor: '#1A5C38',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.12)',
+        borderColor: '#1A5C38',
         borderRadius: 14,
         padding: Spacing.lg,
         color: Colors.textPrimary,
@@ -825,7 +781,7 @@ const styles = StyleSheet.create({
         padding: Spacing.md,
         borderRadius: 10,
         borderWidth: 1,
-        backgroundColor: 'rgba(255,255,255,0.04)',
+        backgroundColor: '#101710',
         marginBottom: Spacing.lg,
     },
     stepNavRow: {
@@ -876,7 +832,7 @@ const styles = StyleSheet.create({
     reasonRow: {
         paddingVertical: Spacing.xs,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.05)',
+        borderBottomColor: 'rgba(31,204,88,0.06)',
         lineHeight: 22,
     },
     summaryRow: {
@@ -894,8 +850,8 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.xs,
         borderRadius: 999,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.12)',
-        backgroundColor: 'rgba(255,255,255,0.04)',
+        borderColor: '#1A5C38',
+        backgroundColor: '#101710',
     },
     registerBtn: {
         borderRadius: 14,

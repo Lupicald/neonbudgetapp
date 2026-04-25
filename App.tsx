@@ -1,19 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { initDatabase } from './src/database/database';
+import { getSetting, setSetting } from './src/database/settingsService';
+import { getRecurringItems } from './src/database/recurringService';
+import { refreshRecurringReminders } from './src/services/notificationService';
 import { Colors } from './src/theme';
-import { NeonText } from './src/components/NeonText';
 import { LanguageProvider } from './src/context/LanguageContext';
+import { OnboardingScreen } from './src/screens/OnboardingScreen';
+import {
+  useFonts,
+  InstrumentSerif_400Regular,
+  InstrumentSerif_400Regular_Italic,
+} from '@expo-google-fonts/instrument-serif';
 
 export default function App() {
   const [ready, setReady] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [fontsLoaded] = useFonts({
+    InstrumentSerif_400Regular,
+    InstrumentSerif_400Regular_Italic,
+  });
 
   useEffect(() => {
     const init = async () => {
       try {
         await initDatabase();
+
+        const onboardingDone = await getSetting('onboarding_complete');
+        setNeedsOnboarding(!onboardingDone);
+
+        try {
+          const items = await getRecurringItems();
+          await refreshRecurringReminders(items as any);
+        } catch {}
+
         setReady(true);
       } catch (err: any) {
         console.error('Database init error:', err);
@@ -23,27 +46,31 @@ export default function App() {
     init();
   }, []);
 
+  const handleOnboardingComplete = async () => {
+    await setSetting('onboarding_complete', '1');
+    setNeedsOnboarding(false);
+  };
+
   if (error) {
     return (
       <View style={styles.splash}>
-        <NeonText variant="title" color={Colors.neonPink}>Error</NeonText>
-        <NeonText variant="body" color={Colors.textSecondary}>{error}</NeonText>
+        <Text style={styles.errorText}>Something went wrong</Text>
+        <Text style={styles.errorDetail}>{error}</Text>
       </View>
     );
   }
 
-  if (!ready) {
+  if (!ready || !fontsLoaded) {
     return (
       <View style={styles.splash}>
-        <NeonText variant="display" glow glowColor={Colors.neonPurple} color={Colors.neonPurple}>
-          NeonBudget
-        </NeonText>
-        <ActivityIndicator size="large" color={Colors.electricBlue} style={{ marginTop: 20 }} />
-        <NeonText variant="caption" color={Colors.textTertiary} style={{ marginTop: 10 }}>
-          Initializing...
-        </NeonText>
+        <Text style={styles.splashTitle}>Sumari</Text>
+        <ActivityIndicator size="large" color={Colors.accent} style={{ marginTop: 24 }} />
       </View>
     );
+  }
+
+  if (needsOnboarding) {
+    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
   }
 
   return (
@@ -56,9 +83,26 @@ export default function App() {
 const styles = StyleSheet.create({
   splash: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+  },
+  splashTitle: {
+    fontFamily: 'InstrumentSerif_400Regular_Italic',
+    fontSize: 56,
+    color: Colors.textPrimary,
+    letterSpacing: -1.5,
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.negative,
+    marginBottom: 8,
+  },
+  errorDetail: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: 32,
   },
 });

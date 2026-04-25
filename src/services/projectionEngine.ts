@@ -25,7 +25,7 @@ export const generateProjection = async (days: number = 30): Promise<ProjectedEv
         }
     }
 
-    allEvents.sort((a, b) => a.date.localeCompare(b.date));
+    allEvents.sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0);
 
     let runningBalance = balance;
     for (const event of allEvents) {

@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { GlassCard, NeonText, ProgressBar } from '../components';
 import { Colors, Spacing, BorderRadius, FontSize } from '../theme';
 import { formatCurrency, getMonthKey } from '../utils';
@@ -137,21 +136,21 @@ export const AnalyticsScreen: React.FC = () => {
                                         <NeonText style={s.barLbl} variant="caption" color={Colors.cyberGreen}>{incLbl}</NeonText>
                                         <View style={[s.topTrack, { height: BAR }]}>
                                             {d.income > 0 && (
-                                                <LinearGradient
-                                                    colors={d.isProjected ? ['rgba(16,185,129,0.38)','rgba(16,185,129,0.12)'] as [string,string] : ['#10B981','#059669'] as [string,string]}
-                                                    style={{ width: 24, height: iH, borderTopLeftRadius: 5, borderTopRightRadius: 5 }}
-                                                    start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-                                                />
+                                                <View style={{
+                                                    width: 24, height: iH,
+                                                    borderTopLeftRadius: 5, borderTopRightRadius: 5,
+                                                    backgroundColor: d.isProjected ? 'rgba(31,204,88,0.35)' : Colors.cyberGreen,
+                                                }} />
                                             )}
                                         </View>
                                         <View style={s.axis} />
                                         <View style={[s.botTrack, { height: BAR }]}>
                                             {d.expense > 0 && (
-                                                <LinearGradient
-                                                    colors={d.isProjected ? ['rgba(245,158,11,0.12)','rgba(245,158,11,0.38)'] as [string,string] : ['#F59E0B','#D97706'] as [string,string]}
-                                                    style={{ width: 24, height: eH, borderBottomLeftRadius: 5, borderBottomRightRadius: 5 }}
-                                                    start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-                                                />
+                                                <View style={{
+                                                    width: 24, height: eH,
+                                                    borderBottomLeftRadius: 5, borderBottomRightRadius: 5,
+                                                    backgroundColor: d.isProjected ? 'rgba(240,160,64,0.35)' : Colors.neonOrange,
+                                                }} />
                                             )}
                                         </View>
                                         <NeonText style={s.barLbl} variant="caption" color={Colors.neonOrange}>{expLbl}</NeonText>
@@ -298,14 +297,14 @@ const s = StyleSheet.create({
     barCol: { alignItems: 'center', width: 50 },
     barLbl: { fontSize: 9, height: 14, textAlign: 'center' },
     topTrack: { width: 24, justifyContent: 'flex-end' },
-    axis: { width: 36, height: 1, backgroundColor: 'rgba(255,255,255,0.10)', marginVertical: 1 },
+    axis: { width: 36, height: 1, backgroundColor: 'rgba(31,204,88,0.12)', marginVertical: 1 },
     botTrack: { width: 24, justifyContent: 'flex-start' },
     mChip: { marginTop: 6, paddingHorizontal: 3, paddingVertical: 2, borderRadius: 4 },
-    mChipActive: { backgroundColor: 'rgba(255,255,255,0.08)' },
+    mChipActive: { backgroundColor: 'rgba(31,204,88,0.10)' },
     projRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md },
     projHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    projBadge: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
-    projTrack: { height: 3, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden' },
+    projBadge: { backgroundColor: '#1A5C38', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
+    projTrack: { height: 3, backgroundColor: '#1A5C38', borderRadius: 2, overflow: 'hidden' },
     projFill: { height: 3, borderRadius: 2 },
     projNums: { alignItems: 'flex-end', gap: 2, minWidth: 96 },
     sumRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -314,7 +313,7 @@ const s = StyleSheet.create({
     scoreBadge: { width: 42, height: 42, borderRadius: 21, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
     catRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: 8 },
     catName: { width: 82, fontSize: 11 },
-    catTrack: { flex: 1, height: 4, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' },
+    catTrack: { flex: 1, height: 4, backgroundColor: '#1A5C38', borderRadius: 2, overflow: 'hidden' },
     catFill: { height: 4, borderRadius: 2 },
     catAmt: { width: 66, textAlign: 'right', fontSize: 11 },
     insRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, paddingVertical: Spacing.sm },

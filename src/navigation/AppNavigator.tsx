@@ -1,161 +1,233 @@
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'react-native';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../theme';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
-// Screens
+// Screens — Sumari design
 import { DashboardScreen } from '../screens/DashboardScreen';
-import { TransactionsScreen } from '../screens/TransactionsScreen';
-import { AddTransactionScreen } from '../screens/AddTransactionScreen';
-import { EditTransactionScreen } from '../screens/EditTransactionScreen';
 import { AccountsScreen } from '../screens/AccountsScreen';
+import { AddTransactionScreen } from '../screens/AddTransactionScreen';
+import { TransactionsScreen } from '../screens/TransactionsScreen';
+import { PlanScreen } from '../screens/PlanScreen';
+import { YouScreen } from '../screens/YouScreen';
 import { TransferScreen } from '../screens/TransferScreen';
 import { CategoriesScreen } from '../screens/CategoriesScreen';
-import { MerchantsScreen } from '../screens/MerchantsScreen';
-import { RecurringScreen } from '../screens/RecurringScreen';
-import { CalendarScreen } from '../screens/CalendarScreen';
-import { TimelineScreen } from '../screens/TimelineScreen';
+import { EditTransactionScreen } from '../screens/EditTransactionScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+import { AchievementsScreen } from '../screens/AchievementsScreen';
 import { BudgetsScreen } from '../screens/BudgetsScreen';
 import { GoalsScreen } from '../screens/GoalsScreen';
-import { AnalyticsScreen } from '../screens/AnalyticsScreen';
-import { AchievementsScreen } from '../screens/AchievementsScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
+import { MerchantsScreen } from '../screens/MerchantsScreen';
+import { CalendarScreen } from '../screens/CalendarScreen';
+import { TimelineScreen } from '../screens/TimelineScreen';
+import { RecurringScreen } from '../screens/RecurringScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+const Root = createNativeStackNavigator();
+
+export const navigationRef = React.createRef<NavigationContainerRef<any>>();
 
 const AppTheme = {
-    ...DefaultTheme,
-    dark: true,
-    colors: {
-        ...DefaultTheme.colors,
-        primary: Colors.cyberGreen,
-        background: Colors.background,
-        card: Colors.tabBarBackground,
-        text: Colors.textPrimary,
-        border: 'rgba(255, 255, 255, 0.06)',
-        notification: Colors.neonPink,
-    },
+  ...DefaultTheme,
+  dark: true,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: Colors.accent,
+    background: Colors.bg,
+    card: Colors.bgCard,
+    text: Colors.textPrimary,
+    border: Colors.border,
+    notification: Colors.negative,
+  },
 };
 
-const DashboardStack = () => (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="DashboardHome" component={DashboardScreen} />
-        <Stack.Screen name="AddTransaction" component={AddTransactionScreen} options={{ presentation: 'modal' }} />
-    </Stack.Navigator>
+// ── Home stack (Dashboard → Transactions → Calendar → Timeline)
+const HomeStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="HomeMain" component={DashboardScreen} />
+    <Stack.Screen name="Transactions" component={TransactionsScreen} />
+    <Stack.Screen name="EditTransaction" component={EditTransactionScreen} options={{ presentation: 'modal' }} />
+    <Stack.Screen name="Calendar" component={CalendarScreen} />
+    <Stack.Screen name="Timeline" component={TimelineScreen} />
+  </Stack.Navigator>
 );
 
-const TransactionsStack = () => (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="TransactionsHome" component={TransactionsScreen} />
-        <Stack.Screen name="AddTransaction" component={AddTransactionScreen} options={{ presentation: 'modal' }} />
-        <Stack.Screen name="EditTransaction" component={EditTransactionScreen} options={{ presentation: 'modal' }} />
-    </Stack.Navigator>
-);
-
+// ── Accounts stack
 const AccountsStack = () => (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="AccountsHome" component={AccountsScreen} />
-        <Stack.Screen name="TransferMoney" component={TransferScreen} />
-    </Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="AccountsMain" component={AccountsScreen} />
+    <Stack.Screen name="TransferMoney" component={TransferScreen} />
+    <Stack.Screen name="Merchants" component={MerchantsScreen} />
+  </Stack.Navigator>
 );
 
-const RecurringStack = () => (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="RecurringHome" component={RecurringScreen} />
-    </Stack.Navigator>
+// ── Plan stack
+const PlanStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="PlanMain" component={PlanScreen} />
+    <Stack.Screen name="CategoriesManage" component={CategoriesScreen} />
+    <Stack.Screen name="BudgetsManage" component={BudgetsScreen} />
+    <Stack.Screen name="GoalsManage" component={GoalsScreen} />
+    <Stack.Screen name="RecurringManage" component={RecurringScreen} />
+  </Stack.Navigator>
 );
 
-const AnalyticsStack = () => (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="AnalyticsHome" component={AnalyticsScreen} />
-    </Stack.Navigator>
+// ── You stack
+const YouStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="YouMain" component={YouScreen} />
+    <Stack.Screen name="Settings" component={SettingsScreen} />
+    <Stack.Screen name="Achievements" component={AchievementsScreen} />
+  </Stack.Navigator>
 );
 
-const SettingsStack = () => (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="SettingsHome" component={SettingsScreen} />
-        <Stack.Screen name="CategoriesManage" component={CategoriesScreen} />
-        <Stack.Screen name="MerchantsManage" component={MerchantsScreen} />
-        <Stack.Screen name="BudgetsManage" component={BudgetsScreen} />
-        <Stack.Screen name="GoalsManage" component={GoalsScreen} />
-        <Stack.Screen name="Achievements" component={AchievementsScreen} />
-        <Stack.Screen name="Timeline" component={TimelineScreen} />
-        <Stack.Screen name="Transfers" component={TransferScreen} />
-        <Stack.Screen name="Calendar" component={CalendarScreen} />
-    </Stack.Navigator>
+// ── Center FAB
+const CenterTabButton: React.FC<any> = () => (
+  <TouchableOpacity
+    onPress={() => navigationRef.current?.navigate('AddTransaction' as never)}
+    activeOpacity={0.85}
+    style={ts.centerBtnWrapper}
+    accessibilityLabel="Add transaction"
+    accessibilityRole="button"
+  >
+    <View style={ts.centerBtn}>
+      <Ionicons name="add" size={26} color={Colors.onAccent} />
+    </View>
+  </TouchableOpacity>
 );
 
-// Tab config
-const tabCfg: Record<string, { active: string; inactive: string; grad: [string, string] }> = {
-    Dashboard:    { active: 'grid',            inactive: 'grid-outline',            grad: ['#3B82F6', '#60A5FA'] },
-    Transactions: { active: 'swap-horizontal', inactive: 'swap-horizontal-outline', grad: ['#7C3AED', '#8B5CF6'] },
-    Accounts:     { active: 'wallet',          inactive: 'wallet-outline',          grad: ['#10B981', '#059669'] },
-    Recurring:    { active: 'repeat',          inactive: 'repeat-outline',          grad: ['#F59E0B', '#D97706'] },
-    Analytics:    { active: 'analytics',       inactive: 'analytics-outline',       grad: ['#EF4444', '#7C3AED'] },
-    Settings:     { active: 'settings',        inactive: 'settings-outline',        grad: ['#4B5563', '#374151'] },
-};
+const EmptyScreen = () => null;
 
-const TabIcon: React.FC<{ name: string; focused: boolean; color: string }> = ({ name, focused, color }) => {
-    const cfg = tabCfg[name];
-    if (focused && cfg) {
-        return (
-            <View style={ts.activeWrap}>
-                <LinearGradient colors={cfg.grad} style={ts.pill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                    <Ionicons name={cfg.active as any} size={19} color="#FFF" />
-                </LinearGradient>
-            </View>
-        );
-    }
-    return (
-        <View style={ts.inactiveWrap}>
-            <Ionicons name={(cfg?.inactive ?? 'ellipse-outline') as any} size={21} color={color} />
-        </View>
-    );
-};
+// ── Tab icon component
+const TabIcon: React.FC<{ ionIcon: string; focused: boolean; color: string }> = ({ ionIcon, focused, color }) => (
+  <View style={ts.iconWrap}>
+    <Ionicons name={ionIcon as any} size={22} color={color} />
+    {focused && <View style={ts.dot} />}
+  </View>
+);
+
+// ── Main tab navigator
+const MainTabs = () => (
+  <Tab.Navigator
+    screenOptions={{
+      headerShown: false,
+      tabBarStyle: {
+        backgroundColor: Colors.bgCard,
+        borderTopColor: Colors.border,
+        borderTopWidth: 1,
+        height: Platform.OS === 'android' ? 68 : 80,
+        paddingBottom: Platform.OS === 'android' ? 8 : 20,
+        paddingTop: 8,
+      },
+      tabBarActiveTintColor: Colors.textPrimary,
+      tabBarInactiveTintColor: Colors.textTertiary,
+      tabBarLabelStyle: {
+        fontSize: 10,
+        fontWeight: '500',
+        marginTop: 0,
+      },
+    }}
+  >
+    <Tab.Screen
+      name="Home"
+      component={HomeStack}
+      options={{
+        tabBarLabel: 'Home',
+        tabBarIcon: ({ focused, color }) => <TabIcon ionIcon={focused ? 'home' : 'home-outline'} focused={focused} color={color} />,
+      }}
+    />
+    <Tab.Screen
+      name="Accounts"
+      component={AccountsStack}
+      options={{
+        tabBarLabel: 'Accounts',
+        tabBarIcon: ({ focused, color }) => <TabIcon ionIcon={focused ? 'wallet' : 'wallet-outline'} focused={focused} color={color} />,
+      }}
+    />
+    <Tab.Screen
+      name="AddCenter"
+      component={EmptyScreen}
+      options={{
+        tabBarLabel: '',
+        tabBarButton: (props) => <CenterTabButton {...props} />,
+        tabBarIcon: () => null,
+      }}
+    />
+    <Tab.Screen
+      name="Plan"
+      component={PlanStack}
+      options={{
+        tabBarLabel: 'Plan',
+        tabBarIcon: ({ focused, color }) => <TabIcon ionIcon={focused ? 'pie-chart' : 'pie-chart-outline'} focused={focused} color={color} />,
+      }}
+    />
+    <Tab.Screen
+      name="You"
+      component={YouStack}
+      options={{
+        tabBarLabel: 'You',
+        tabBarIcon: ({ focused, color }) => <TabIcon ionIcon={focused ? 'person' : 'person-outline'} focused={focused} color={color} />,
+      }}
+    />
+  </Tab.Navigator>
+);
+
+// ── Root navigator
+const RootNavigator = () => (
+  <Root.Navigator screenOptions={{ headerShown: false }}>
+    <Root.Screen name="MainTabs" component={MainTabs} />
+    <Root.Screen
+      name="AddTransaction"
+      component={AddTransactionScreen}
+      options={{ presentation: 'modal', headerShown: false }}
+    />
+  </Root.Navigator>
+);
+
+// ── Export
+export const AppNavigator: React.FC = () => (
+  <NavigationContainer ref={navigationRef} theme={AppTheme}>
+    <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+    <ErrorBoundary>
+      <RootNavigator />
+    </ErrorBoundary>
+  </NavigationContainer>
+);
 
 const ts = StyleSheet.create({
-    activeWrap: { alignItems: 'center', justifyContent: 'center', marginTop: -5 },
-    pill: {
-        width: 46, height: 30, borderRadius: 15,
-        alignItems: 'center', justifyContent: 'center',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.35, shadowRadius: 8, elevation: 6,
-    },
-    inactiveWrap: { alignItems: 'center', justifyContent: 'center', width: 44, height: 36 },
+  iconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.accent,
+  },
+  centerBtnWrapper: {
+    top: -18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  centerBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.30,
+    shadowRadius: 12,
+    elevation: 10,
+  },
 });
-
-export const AppNavigator: React.FC = () => (
-    <NavigationContainer theme={AppTheme}>
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-        <Tab.Navigator
-            screenOptions={({ route }) => ({
-                headerShown: false,
-                tabBarStyle: {
-                    backgroundColor: 'rgba(17, 17, 17, 0.97)',
-                    borderTopColor: 'rgba(255, 255, 255, 0.06)',
-                    borderTopWidth: 1,
-                    height: Platform.OS === 'android' ? 66 : 78,
-                    paddingBottom: Platform.OS === 'android' ? 10 : 20,
-                    paddingTop: 8,
-                },
-                tabBarActiveTintColor: Colors.cyberGreen,
-                tabBarInactiveTintColor: Colors.tabBarInactive,
-                tabBarLabelStyle: { fontSize: 9, fontWeight: '500', letterSpacing: 0.2 },
-                tabBarIcon: ({ focused, color }) => <TabIcon name={route.name} focused={focused} color={color} />,
-            })}
-        >
-            <Tab.Screen name="Dashboard" component={DashboardStack} />
-            <Tab.Screen name="Transactions" component={TransactionsStack} />
-            <Tab.Screen name="Accounts" component={AccountsStack} />
-            <Tab.Screen name="Recurring" component={RecurringStack} />
-            <Tab.Screen name="Analytics" component={AnalyticsStack} />
-            <Tab.Screen name="Settings" component={SettingsStack} />
-        </Tab.Navigator>
-    </NavigationContainer>
-);
