@@ -116,8 +116,8 @@ export const SettingsScreen: React.FC = () => {
         );
     };
 
-    const navItem = (label: string, icon: string, screen: string) => (
-        <TouchableOpacity key={screen} style={styles.navItem} onPress={() => navigation.navigate(screen)}>
+    const navItem = (label: string, icon: string, onPress: () => void) => (
+        <TouchableOpacity key={label} style={styles.navItem} onPress={onPress}>
             <View style={styles.navLeft}>
                 <Ionicons name={icon as any} size={20} color={Colors.electricBlue} />
                 <NeonText variant="body">{label}</NeonText>
@@ -183,14 +183,14 @@ export const SettingsScreen: React.FC = () => {
                 {/* Management */}
                 <NeonText variant="subtitle" style={styles.sectionTitle}>Manage</NeonText>
                 <GlassCard style={styles.navSection}>
-                    {navItem('Categories', 'grid-outline', 'CategoriesManage')}
-                    {navItem('Merchants', 'storefront-outline', 'Merchants')}
-                    {navItem('Budgets', 'pie-chart-outline', 'BudgetsManage')}
-                    {navItem('Goals', 'trophy-outline', 'GoalsManage')}
-                    {navItem('Achievements', 'medal-outline', 'Achievements')}
-                    {navItem('Calendar', 'calendar-outline', 'Calendar')}
-                    {navItem('Timeline', 'time-outline', 'Timeline')}
-                    {navItem('Transfers', 'swap-horizontal-outline', 'TransferMoney')}
+                    {navItem('Categories', 'grid-outline', () => navigation.navigate('Plan', { screen: 'CategoriesManage' }))}
+                    {navItem('Merchants', 'storefront-outline', () => navigation.navigate('Accounts', { screen: 'Merchants' }))}
+                    {navItem('Budgets', 'pie-chart-outline', () => navigation.navigate('Plan', { screen: 'BudgetsManage' }))}
+                    {navItem('Goals', 'trophy-outline', () => navigation.navigate('Plan', { screen: 'GoalsManage' }))}
+                    {navItem('Achievements', 'medal-outline', () => navigation.navigate('Achievements'))}
+                    {navItem('Calendar', 'calendar-outline', () => navigation.navigate('Home', { screen: 'Calendar' }))}
+                    {navItem('Timeline', 'time-outline', () => navigation.navigate('Home', { screen: 'Timeline' }))}
+                    {navItem('Transfers', 'swap-horizontal-outline', () => navigation.navigate('Accounts', { screen: 'TransferMoney' }))}
 
                     <TouchableOpacity style={[styles.navItem, { borderBottomWidth: 0 }]} onPress={handleReset}>
                         <View style={styles.navLeft}>

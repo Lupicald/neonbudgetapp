@@ -7,9 +7,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, SumariButton, SectionHeader } from '../components/SumariPrimitives';
-import { Colors, Spacing, BorderRadius, FontFamily } from '../theme';
+import { Colors, Spacing, BorderRadius, FontFamily, CategoryColors } from '../theme';
 import { addTransaction } from '../database/transactionService';
-import { getCategories } from '../database/categoryService';
+import { getCategories, addCategory } from '../database/categoryService';
 import { getAccounts } from '../database/accountService';
 import { getSetting } from '../database/settingsService';
 import { getMerchants, addMerchant, updateMerchant, deleteMerchant } from '../database/merchantService';
@@ -37,6 +37,24 @@ export const AddTransactionScreen: React.FC = () => {
   const [vendorSearch, setVendorSearch] = useState('');
   const [newVendorName, setNewVendorName] = useState('');
   const [editingVendor, setEditingVendor] = useState<Merchant | null>(null);
+  const [catModal, setCatModal] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('ellipse');
+  const [newCatColor, setNewCatColor] = useState(CategoryColors[0]);
+
+  const CAT_QUICK_ICONS = ['restaurant', 'car', 'home', 'fitness', 'bag-handle', 'school', 'game-controller', 'heart', 'airplane', 'cafe', 'leaf', 'musical-notes'];
+
+  const handleAddCategory = async () => {
+    if (!newCatName.trim()) return Alert.alert('Enter a name');
+    const newId = await addCategory(newCatName.trim(), newCatIcon, newCatColor);
+    const updatedCats = await getCategories();
+    setCategories(updatedCats as Category[]);
+    setSelectedCat(newId);
+    setNewCatName('');
+    setNewCatIcon('ellipse');
+    setNewCatColor(CategoryColors[0]);
+    setCatModal(false);
+  };
 
   const loadAll = () => {
     Promise.all([getCategories(), getAccounts(), getSetting('currency'), getMerchants()]).then(([cats, accs, cur, merch]) => {
@@ -173,6 +191,14 @@ export const AddTransactionScreen: React.FC = () => {
                   </TouchableOpacity>
                 );
               })}
+              {/* Add category chip */}
+              <TouchableOpacity onPress={() => setCatModal(true)}
+                style={[s.catChip, { borderStyle: 'dashed', borderColor: Colors.textTertiary, backgroundColor: 'transparent' }]}>
+                <View style={[s.catChipIcon, { backgroundColor: Colors.bgCardAlt }]}>
+                  <Ionicons name="add" size={17} color={Colors.textSecondary} />
+                </View>
+                <Text style={[s.catChipText, { color: Colors.textTertiary }]}>New</Text>
+              </TouchableOpacity>
             </View>
           </ScrollView>
 
@@ -209,6 +235,47 @@ export const AddTransactionScreen: React.FC = () => {
           </SumariButton>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Add Category Modal */}
+      <Modal visible={catModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCatModal(false)}>
+        <SafeAreaView style={s.vendorModal}>
+          <View style={s.vendorModalHeader}>
+            <Text style={s.vendorModalTitle}>New Category</Text>
+            <TouchableOpacity onPress={() => setCatModal(false)} style={s.closeBtn}>
+              <Ionicons name="close" size={18} color={Colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView contentContainerStyle={{ paddingHorizontal: Spacing.xl, paddingBottom: 40 }}>
+            {/* Name */}
+            <Text style={s.catModalLabel}>Name</Text>
+            <View style={[s.fieldRow, { borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.md, marginBottom: Spacing.lg }]}>
+              <TextInput style={[s.fieldInput, { flex: 1 }]} value={newCatName} onChangeText={setNewCatName}
+                placeholder="e.g. Gym" placeholderTextColor={Colors.textMuted} autoFocus />
+            </View>
+            {/* Icon */}
+            <Text style={s.catModalLabel}>Icon</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.lg }}>
+              {CAT_QUICK_ICONS.map(ic => (
+                <TouchableOpacity key={ic} onPress={() => setNewCatIcon(ic)}
+                  style={[s.catIconBtn, newCatIcon === ic && { borderColor: newCatColor, backgroundColor: newCatColor + '20' }]}>
+                  <Ionicons name={ic as any} size={20} color={newCatIcon === ic ? newCatColor : Colors.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            {/* Color */}
+            <Text style={s.catModalLabel}>Color</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.xxl }}>
+              {CategoryColors.slice(0, 10).map(c => (
+                <TouchableOpacity key={c} onPress={() => setNewCatColor(c)}
+                  style={[s.catColorBtn, { backgroundColor: c }, newCatColor === c && s.catColorBtnActive]} />
+              ))}
+            </View>
+            <SumariButton onPress={handleAddCategory} variant="primary" size="lg" fullWidth>
+              Add Category
+            </SumariButton>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
 
       {/* Vendor Picker Modal */}
       <Modal visible={vendorModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setVendorModal(false)}>
@@ -353,4 +420,8 @@ const s = StyleSheet.create({
     padding: Spacing.md, marginBottom: Spacing.sm },
   vendorIconBox: { width: 36, height: 36, borderRadius: BorderRadius.xs, alignItems: 'center', justifyContent: 'center' },
   vendorName: { flex: 1, fontSize: 14, fontWeight: '500', color: Colors.textPrimary },
+  catModalLabel: { fontSize: 11, fontWeight: '500', color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 1.4, marginBottom: 8 },
+  catIconBtn: { width: 44, height: 44, borderRadius: BorderRadius.sm, backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  catColorBtn: { width: 32, height: 32, borderRadius: 16 },
+  catColorBtnActive: { borderWidth: 3, borderColor: Colors.textPrimary },
 });
