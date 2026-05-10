@@ -190,13 +190,15 @@ export const DashboardScreen: React.FC = () => {
         </View>
 
         {/* Health Score */}
+        <SectionHeader label="Financial health" action="Analytics"
+          onAction={() => navigation.navigate('Analytics')}
+          style={{ paddingTop: Spacing.xl, paddingBottom: Spacing.sm }} />
         <View style={s.padH}>
           <Card>
             <View style={s.healthRow}>
               <Ring value={healthScore.score} size={84} stroke={7} color={Colors.accent}
                 label={String(healthScore.score)} sublabel="Score" />
               <View style={s.healthText}>
-                <Text style={s.healthCategory}>Financial health</Text>
                 <Text style={s.healthLabel}>{healthScore.label}</Text>
                 <Text style={s.healthDesc}>You save {Math.max(0, savingsRate)}% of income this month.</Text>
               </View>

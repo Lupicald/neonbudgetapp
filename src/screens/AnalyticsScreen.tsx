@@ -286,7 +286,7 @@ export const AnalyticsScreen: React.FC = () => {
 };
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     scroll: { paddingHorizontal: Spacing.lg, paddingTop: Platform.OS === 'android' ? 48 : 56 },
     title: { marginBottom: Spacing.xl },
     card: { marginBottom: Spacing.lg },

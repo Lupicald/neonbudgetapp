@@ -19,8 +19,10 @@ import {
     getPlannedIncomes,
     getAllPlannedExpenses,
     addPlannedIncome,
+    updatePlannedIncome,
     deletePlannedIncome,
     addPlannedExpense,
+    updatePlannedExpense,
     deletePlannedExpense,
     togglePlannedExpenseComplete,
 } from '../database/plannedBudgetService';
@@ -36,6 +38,7 @@ export const PlannedBudgetScreen: React.FC = () => {
     const [expenses, setExpenses] = useState<PlannedExpense[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [modalMode, setModalMode] = useState<ModalMode>(null);
+    const [editingItemId, setEditingItemId] = useState<number | null>(null);
 
     // Form state
     const [formName, setFormName] = useState('');
@@ -67,8 +70,24 @@ export const PlannedBudgetScreen: React.FC = () => {
         setFormLinkedIncomeId(null);
     };
 
-    const openModal = (mode: ModalMode) => {
+    const openModal = (mode: ModalMode, item?: PlannedIncome | PlannedExpense) => {
         resetForm();
+        if (item) {
+            setEditingItemId(item.id);
+            setFormName(item.name);
+            setFormAmount(String(item.amount));
+            setFormNote(item.note || '');
+            if (mode === 'income') {
+                setFormDate((item as PlannedIncome).expected_date);
+            } else {
+                const exp = item as PlannedExpense;
+                setFormDate(exp.planned_date);
+                setFormCategoryId(exp.category_id);
+                setFormLinkedIncomeId(exp.planned_income_id ?? null);
+            }
+        } else {
+            setEditingItemId(null);
+        }
         setModalMode(mode);
     };
 
@@ -81,10 +100,18 @@ export const PlannedBudgetScreen: React.FC = () => {
             return;
         }
         try {
-            if (modalMode === 'income') {
-                await addPlannedIncome(formName.trim(), amount, formDate, formNote.trim());
+            if (editingItemId !== null) {
+                if (modalMode === 'income') {
+                    await updatePlannedIncome(editingItemId, formName.trim(), amount, formDate, formNote.trim());
+                } else {
+                    await updatePlannedExpense(editingItemId, formName.trim(), amount, formDate, formCategoryId, formLinkedIncomeId, formNote.trim());
+                }
             } else {
-                await addPlannedExpense(formName.trim(), amount, formDate, formCategoryId, formLinkedIncomeId, formNote.trim());
+                if (modalMode === 'income') {
+                    await addPlannedIncome(formName.trim(), amount, formDate, formNote.trim());
+                } else {
+                    await addPlannedExpense(formName.trim(), amount, formDate, formCategoryId, formLinkedIncomeId, formNote.trim());
+                }
             }
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             closeModal();
@@ -94,9 +121,9 @@ export const PlannedBudgetScreen: React.FC = () => {
         }
     };
 
-    const handleDeleteIncome = (item: PlannedIncome) => {
-        Alert.alert('Delete Income Plan', `Delete "${item.name}"?\nLinked expenses will be unlinked.`, [
-            { text: 'Cancel', style: 'cancel' },
+    const handleLongPressIncome = (item: PlannedIncome) => {
+        Alert.alert(item.name, '', [
+            { text: 'Edit', onPress: () => openModal('income', item) },
             {
                 text: 'Delete', style: 'destructive', onPress: async () => {
                     await deletePlannedIncome(item.id);
@@ -104,12 +131,13 @@ export const PlannedBudgetScreen: React.FC = () => {
                     loadData();
                 }
             },
+            { text: 'Cancel', style: 'cancel' },
         ]);
     };
 
-    const handleDeleteExpense = (item: PlannedExpense) => {
-        Alert.alert('Delete Planned Expense', `Delete "${item.name}"?`, [
-            { text: 'Cancel', style: 'cancel' },
+    const handleLongPressExpense = (item: PlannedExpense) => {
+        Alert.alert(item.name, '', [
+            { text: 'Edit', onPress: () => openModal('expense', item) },
             {
                 text: 'Delete', style: 'destructive', onPress: async () => {
                     await deletePlannedExpense(item.id);
@@ -117,6 +145,7 @@ export const PlannedBudgetScreen: React.FC = () => {
                     loadData();
                 }
             },
+            { text: 'Cancel', style: 'cancel' },
         ]);
     };
 
@@ -283,7 +312,7 @@ export const PlannedBudgetScreen: React.FC = () => {
                                             return (
                                                 <TouchableOpacity
                                                     key={`inc-${item.id}`}
-                                                    onLongPress={() => handleDeleteIncome(item)}
+                                                    onLongPress={() => handleLongPressIncome(item)}
                                                     activeOpacity={0.85}
                                                 >
                                                     <View style={[styles.eventCard, styles.incomeCard]}>
@@ -309,7 +338,7 @@ export const PlannedBudgetScreen: React.FC = () => {
                                                 <TouchableOpacity
                                                     key={`exp-${item.id}`}
                                                     onPress={() => handleToggleExpense(item)}
-                                                    onLongPress={() => handleDeleteExpense(item)}
+                                                    onLongPress={() => handleLongPressExpense(item)}
                                                     activeOpacity={0.85}
                                                 >
                                                     <View style={[styles.eventCard, styles.expenseCard, item.is_completed && styles.completedCard]}>
@@ -363,7 +392,7 @@ export const PlannedBudgetScreen: React.FC = () => {
                 )}
 
                 <NeonText variant="caption" color={Colors.textMuted} align="center" style={{ marginTop: Spacing.md, marginBottom: 8 }}>
-                    Tap expense to mark done · Long-press to delete
+                    Tap expense to mark done · Long-press to edit or delete
                 </NeonText>
                 <View style={{ height: 100 }} />
             </ScrollView>
@@ -376,7 +405,7 @@ export const PlannedBudgetScreen: React.FC = () => {
                 onRequestClose={closeModal}
             >
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                    behavior="padding"
                     style={styles.modalOverlay}
                 >
                     <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeModal} />
@@ -385,7 +414,7 @@ export const PlannedBudgetScreen: React.FC = () => {
                         <View style={styles.handle} />
 
                         <NeonText variant="subtitle" style={{ marginBottom: Spacing.xl }}>
-                            {modalMode === 'income' ? 'Plan Income' : 'Plan Expense'}
+                            {editingItemId !== null ? 'Edit' : 'Plan'} {modalMode === 'income' ? 'Income' : 'Expense'}
                         </NeonText>
 
                         {/* Name */}
@@ -495,7 +524,7 @@ export const PlannedBudgetScreen: React.FC = () => {
                         <TouchableOpacity onPress={handleSave} activeOpacity={0.85} style={styles.saveBtn}>
                             <View style={[styles.saveBtnGrad, { backgroundColor: modalMode === 'income' ? Colors.cyberGreen : Colors.neonPink }]}>
                                 <NeonText variant="body" color="#FFF" style={{ fontWeight: '700' }}>
-                                    Save {modalMode === 'income' ? 'Income' : 'Expense'}
+                                    {editingItemId !== null ? 'Update' : 'Save'} {modalMode === 'income' ? 'Income' : 'Expense'}
                                 </NeonText>
                             </View>
                         </TouchableOpacity>
@@ -507,7 +536,7 @@ export const PlannedBudgetScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: Colors.bg },
     scroll: { paddingHorizontal: Spacing.lg, paddingTop: Platform.OS === 'android' ? 48 : 56 },
     header: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xl, gap: Spacing.md },
     backBtn: { padding: Spacing.xs },

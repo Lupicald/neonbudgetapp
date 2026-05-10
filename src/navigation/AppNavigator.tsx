@@ -27,6 +27,8 @@ import { CalendarScreen } from '../screens/CalendarScreen';
 import { TimelineScreen } from '../screens/TimelineScreen';
 import { RecurringScreen } from '../screens/RecurringScreen';
 import { SubscriptionsScreen } from '../screens/SubscriptionsScreen';
+import { AnalyticsScreen } from '../screens/AnalyticsScreen';
+import { PlannedBudgetScreen } from '../screens/PlannedBudgetScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -48,7 +50,7 @@ const AppTheme = {
   },
 };
 
-// ── Home stack (Dashboard → Transactions → Calendar → Timeline)
+// ── Home stack (Dashboard → Transactions → Calendar → Timeline → Analytics)
 const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="HomeMain" component={DashboardScreen} />
@@ -56,6 +58,7 @@ const HomeStack = () => (
     <Stack.Screen name="EditTransaction" component={EditTransactionScreen} options={{ presentation: 'modal' }} />
     <Stack.Screen name="Calendar" component={CalendarScreen} />
     <Stack.Screen name="Timeline" component={TimelineScreen} />
+    <Stack.Screen name="Analytics" component={AnalyticsScreen} />
   </Stack.Navigator>
 );
 
@@ -77,6 +80,7 @@ const PlanStack = () => (
     <Stack.Screen name="GoalsManage" component={GoalsScreen} />
     <Stack.Screen name="RecurringManage" component={RecurringScreen} />
     <Stack.Screen name="Subscriptions" component={SubscriptionsScreen} />
+    <Stack.Screen name="IncomePlanner" component={PlannedBudgetScreen} />
   </Stack.Navigator>
 );
 

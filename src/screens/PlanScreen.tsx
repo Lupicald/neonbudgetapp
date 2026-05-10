@@ -143,6 +143,12 @@ export const PlanScreen: React.FC = () => {
             <Ionicons name="repeat-outline" size={13} color={Colors.textSecondary} />
             <Text style={{ fontSize: 13, fontWeight: '500', color: Colors.textSecondary }}>Subscriptions</Text>
           </Pill>
+          {/* Income Planner navigates to its own screen */}
+          <Pill active={false} onPress={() => navigation.navigate('IncomePlanner')} size="md"
+            style={{ flexDirection: 'row', gap: 6 }}>
+            <Ionicons name="calendar-outline" size={13} color={Colors.textSecondary} />
+            <Text style={{ fontSize: 13, fontWeight: '500', color: Colors.textSecondary }}>Income Planner</Text>
+          </Pill>
         </ScrollView>
 
         {/* BUDGETS */}
