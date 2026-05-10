@@ -462,7 +462,7 @@ export const RecurringScreen: React.FC<Props> = () => {
 
             {/* ── Add/Edit Recurring Modal ── */}
             <Modal visible={modalOpen} transparent animationType="slide" onRequestClose={() => setModalOpen(false)}>
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.overlay}>
+                <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 0} style={s.overlay}>
                     <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setModalOpen(false)} />
                     <ScrollView style={s.sheet} contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 40 : Spacing.xl }} showsVerticalScrollIndicator={false}>
                         <View style={s.handle} />

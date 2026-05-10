@@ -64,6 +64,22 @@ export const initDatabase = async (): Promise<void> => {
         );`);
     } catch (e) { console.log('Migration error planned tables:', e); }
 
+    // Subscriptions table
+    try {
+        await database.execAsync(`CREATE TABLE IF NOT EXISTS subscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            amount REAL NOT NULL,
+            billing_day INTEGER NOT NULL DEFAULT 1,
+            color TEXT NOT NULL DEFAULT '#ffe66d',
+            icon TEXT NOT NULL DEFAULT 'repeat-outline',
+            note TEXT NOT NULL DEFAULT '',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            category_id INTEGER,
+            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+        );`);
+    } catch (e) { console.log('Migration error subscriptions:', e); }
+
     // Transfers table might not have been created if the user had an old DB
     try {
         await database.execAsync(`CREATE TABLE IF NOT EXISTS transfers (

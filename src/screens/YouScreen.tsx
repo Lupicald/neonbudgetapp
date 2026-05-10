@@ -11,7 +11,9 @@ import { getAchievements, getLevelData, getStreak, LevelData } from '../services
 import { calculateHealthScore } from '../services/healthScore';
 import { getSetting, setSetting } from '../database/settingsService';
 import { resetDatabase } from '../database/database';
-import { shareCSV } from '../services/csvService';
+import { shareCSV, importFromCSV } from '../services/csvService';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Achievement, FinancialHealthScore } from '../types';
 
 const CURRENCIES = ['MXN', 'USD', 'EUR', 'GBP', 'CAD', 'COP', 'ARS', 'BRL', 'JPY'];
@@ -92,6 +94,36 @@ export const YouScreen: React.FC = () => {
     } catch {
       Alert.alert('Error', 'Could not export data.');
     }
+  };
+
+  const handleImport = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['text/csv', 'text/comma-separated-values', 'application/csv', '*/*'],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets?.[0]) return;
+      Alert.alert('Import Data', 'Existing data will NOT be deleted. Continue?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Import', onPress: async () => {
+            try {
+              const content = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: FileSystem.EncodingType.UTF8 });
+              const { imported, skipped } = await importFromCSV(content);
+              Alert.alert('Done', `✅ ${imported} imported\n⏭️ ${skipped} skipped`);
+            } catch (e: any) { Alert.alert('Import Error', e?.message || 'Failed to import'); }
+          },
+        },
+      ]);
+    } catch (e: any) { Alert.alert('Error', e?.message || 'Failed to pick file'); }
+  };
+
+  const handleImportExport = () => {
+    Alert.alert('Import / Export', 'Choose an action', [
+      { text: 'Export CSV', onPress: handleExport },
+      { text: 'Import CSV', onPress: handleImport },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   return (
@@ -215,7 +247,7 @@ export const YouScreen: React.FC = () => {
             {([
               { icon: 'globe-outline', l: 'Language', v: language, onPress: handleLanguage },
               { icon: 'notifications-outline', l: 'Notifications', onPress: handleNotifications },
-              { icon: 'download-outline', l: 'Import / Export', onPress: handleExport },
+              { icon: 'download-outline', l: 'Import / Export', onPress: handleImportExport },
               { icon: 'lock-closed-outline', l: 'Privacy & Security', onPress: () => Alert.alert('Privacy & Security', 'Coming soon in a future update.') },
             ] as { icon: string; l: string; v?: string; onPress: () => void }[]).map((row, i, a) => (
               <TouchableOpacity key={row.l} onPress={row.onPress}

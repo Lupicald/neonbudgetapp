@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput,
-  KeyboardAvoidingView, Platform, Alert,
+  KeyboardAvoidingView, Platform, Alert, Modal, FlatList,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,8 +12,9 @@ import { addTransaction } from '../database/transactionService';
 import { getCategories } from '../database/categoryService';
 import { getAccounts } from '../database/accountService';
 import { getSetting } from '../database/settingsService';
+import { getMerchants, addMerchant, updateMerchant, deleteMerchant } from '../database/merchantService';
 import { checkAndAwardAchievements } from '../services/gamification';
-import { Category, Account, TransactionType } from '../types';
+import { Category, Account, TransactionType, Merchant } from '../types';
 
 export const AddTransactionScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -29,19 +30,27 @@ export const AddTransactionScreen: React.FC = () => {
   const [date] = useState(new Date().toISOString().slice(0, 10));
   const [categories, setCategories] = useState<Category[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [saving, setSaving] = useState(false);
   const [currency, setCurrency] = useState('MXN');
+  const [vendorModal, setVendorModal] = useState(false);
+  const [vendorSearch, setVendorSearch] = useState('');
+  const [newVendorName, setNewVendorName] = useState('');
+  const [editingVendor, setEditingVendor] = useState<Merchant | null>(null);
 
-  useEffect(() => {
-    Promise.all([getCategories(), getAccounts(), getSetting('currency')]).then(([cats, accs, cur]) => {
+  const loadAll = () => {
+    Promise.all([getCategories(), getAccounts(), getSetting('currency'), getMerchants()]).then(([cats, accs, cur, merch]) => {
       setCategories(cats as Category[]);
       setAccounts(accs as Account[]);
+      setMerchants(merch as Merchant[]);
       if ((cats as Category[]).length > 0) setSelectedCat((cats as Category[])[0].id);
       const def = (accs as Account[]).find(a => a.is_default) ?? (accs as Account[])[0];
       if (def) setSelectedAcc(def.id);
       if (cur) setCurrency(cur);
     });
-  }, []);
+  };
+
+  useEffect(() => { loadAll(); }, []);
 
   const amountColor = type === 'income' ? Colors.accent : Colors.textPrimary;
 
@@ -128,11 +137,13 @@ export const AddTransactionScreen: React.FC = () => {
         <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Fields */}
           <Card style={{ padding: 0 }}>
-            <View style={s.fieldRow}>
-              <View style={s.fieldIcon}><Ionicons name="pricetag-outline" size={15} color={Colors.textSecondary} /></View>
-              <TextInput style={s.fieldInput} value={merchant} onChangeText={setMerchant}
-                placeholder="Merchant / description" placeholderTextColor={Colors.textMuted} />
-            </View>
+            <TouchableOpacity style={s.fieldRow} onPress={() => { setVendorSearch(''); setNewVendorName(''); setEditingVendor(null); setVendorModal(true); }}>
+              <View style={s.fieldIcon}><Ionicons name="storefront-outline" size={15} color={Colors.textSecondary} /></View>
+              <Text style={[s.fieldInput, { flex: 1, paddingVertical: 0 }, !merchant && { color: Colors.textMuted }]} numberOfLines={1}>
+                {merchant || 'Select vendor'}
+              </Text>
+              <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+            </TouchableOpacity>
             <View style={s.divider} />
             <View style={s.fieldRow}>
               <View style={s.fieldIcon}><Ionicons name="calendar-outline" size={15} color={Colors.textSecondary} /></View>
@@ -198,6 +209,92 @@ export const AddTransactionScreen: React.FC = () => {
           </SumariButton>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Vendor Picker Modal */}
+      <Modal visible={vendorModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setVendorModal(false)}>
+        <SafeAreaView style={s.vendorModal}>
+          <View style={s.vendorModalHeader}>
+            <Text style={s.vendorModalTitle}>Select Vendor</Text>
+            <TouchableOpacity onPress={() => setVendorModal(false)} style={s.closeBtn}>
+              <Ionicons name="close" size={18} color={Colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Search + Add */}
+          <View style={s.vendorSearchRow}>
+            <View style={[s.fieldRow, { flex: 1, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.md, marginRight: Spacing.sm }]}>
+              <Ionicons name="search-outline" size={15} color={Colors.textSecondary} style={{ marginLeft: Spacing.sm }} />
+              <TextInput style={[s.fieldInput, { flex: 1 }]} value={vendorSearch} onChangeText={setVendorSearch}
+                placeholder="Search vendors…" placeholderTextColor={Colors.textMuted} autoFocus />
+            </View>
+          </View>
+
+          {/* Add new vendor inline */}
+          {editingVendor ? (
+            <View style={s.newVendorRow}>
+              <TextInput style={[s.fieldInput, { flex: 1, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm }]}
+                value={newVendorName} onChangeText={setNewVendorName} placeholder="Vendor name" placeholderTextColor={Colors.textMuted} autoFocus />
+              <TouchableOpacity style={s.vendorSaveBtn} onPress={async () => {
+                if (!newVendorName.trim()) return;
+                await updateMerchant(editingVendor.id, newVendorName);
+                setEditingVendor(null); setNewVendorName('');
+                const m = await getMerchants(); setMerchants(m as Merchant[]);
+              }}>
+                <Text style={{ color: Colors.accent, fontWeight: '600' }}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { setEditingVendor(null); setNewVendorName(''); }} style={{ padding: 8 }}>
+                <Ionicons name="close" size={16} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={s.newVendorRow}>
+              <TextInput style={[s.fieldInput, { flex: 1, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm }]}
+                value={newVendorName} onChangeText={setNewVendorName} placeholder="Add new vendor…" placeholderTextColor={Colors.textMuted} />
+              <TouchableOpacity style={s.vendorSaveBtn} onPress={async () => {
+                const name = newVendorName.trim() || vendorSearch.trim();
+                if (!name) return;
+                await addMerchant(name);
+                setNewVendorName('');
+                const m = await getMerchants(); setMerchants(m as Merchant[]);
+                setMerchant(name); setVendorModal(false);
+              }}>
+                <Ionicons name="add" size={18} color={Colors.accent} />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <FlatList
+            data={merchants.filter(m => !vendorSearch || m.name.toLowerCase().includes(vendorSearch.toLowerCase()))}
+            keyExtractor={m => String(m.id)}
+            contentContainerStyle={{ paddingHorizontal: Spacing.xl, paddingBottom: 40 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={[s.vendorItem, merchant === item.name && { backgroundColor: Colors.accent + '18', borderColor: Colors.accent }]}
+                onPress={() => { setMerchant(item.name); setVendorModal(false); }}>
+                <View style={[s.vendorIconBox, { backgroundColor: (item.category_color || Colors.accent) + '22' }]}>
+                  <Ionicons name={(item.category_icon || 'storefront-outline') as any} size={18} color={item.category_color || Colors.accent} />
+                </View>
+                <Text style={[s.vendorName, merchant === item.name && { color: Colors.accent }]}>{item.name}</Text>
+                {merchant === item.name && <Ionicons name="checkmark-circle" size={18} color={Colors.accent} />}
+                <TouchableOpacity onPress={() => { setEditingVendor(item); setNewVendorName(item.name); }} style={{ padding: 6 }}>
+                  <Ionicons name="pencil-outline" size={14} color={Colors.textTertiary} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => Alert.alert('Delete', `Delete "${item.name}"?`, [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: async () => { await deleteMerchant(item.id); const m = await getMerchants(); setMerchants(m as Merchant[]); if (merchant === item.name) setMerchant(''); } },
+                ])} style={{ padding: 6 }}>
+                  <Ionicons name="trash-outline" size={14} color={Colors.negative} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', paddingTop: 40 }}>
+                <Text style={{ color: Colors.textMuted, fontSize: 14 }}>No vendors saved yet</Text>
+                <Text style={{ color: Colors.textTertiary, fontSize: 12, marginTop: 4 }}>Type a name above and tap + to add one</Text>
+              </View>
+            }
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -242,4 +339,18 @@ const s = StyleSheet.create({
   accChipName: { fontSize: 12, fontWeight: '600', color: Colors.textPrimary },
   accChipBal: { fontSize: 10, color: Colors.textTertiary },
   footer: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, paddingBottom: Spacing.xxl },
+  vendorModal: { flex: 1, backgroundColor: Colors.bg },
+  vendorModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, paddingBottom: Spacing.lg },
+  vendorModalTitle: { fontFamily: FontFamily.display, fontSize: 22, color: Colors.textPrimary, letterSpacing: -0.4 },
+  vendorSearchRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.xl, marginBottom: Spacing.sm },
+  newVendorRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    paddingHorizontal: Spacing.xl, marginBottom: Spacing.md },
+  vendorSaveBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.bgCardAlt,
+    alignItems: 'center', justifyContent: 'center' },
+  vendorItem: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+    backgroundColor: Colors.bgCard, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.border,
+    padding: Spacing.md, marginBottom: Spacing.sm },
+  vendorIconBox: { width: 36, height: 36, borderRadius: BorderRadius.xs, alignItems: 'center', justifyContent: 'center' },
+  vendorName: { flex: 1, fontSize: 14, fontWeight: '500', color: Colors.textPrimary },
 });

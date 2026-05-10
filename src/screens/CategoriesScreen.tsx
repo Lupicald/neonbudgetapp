@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, Alert, ActionSheetIOS, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassCard, NeonText, NeonButton, GlowInput, CategoryIcon } from '../components';
@@ -75,6 +75,21 @@ export const CategoriesScreen: React.FC = () => {
         ]);
     };
 
+    const handleLongPress = (cat: Category) => {
+        if (Platform.OS === 'ios') {
+            ActionSheetIOS.showActionSheetWithOptions(
+                { options: ['Cancel', 'Edit', cat.is_default ? 'Cannot Delete (Default)' : 'Delete'], cancelButtonIndex: 0, destructiveButtonIndex: cat.is_default ? undefined : 2 },
+                (idx) => { if (idx === 1) handleEdit(cat); if (idx === 2 && !cat.is_default) handleDelete(cat); }
+            );
+        } else {
+            Alert.alert(cat.name, 'What would you like to do?', [
+                { text: 'Edit', onPress: () => handleEdit(cat) },
+                ...(!cat.is_default ? [{ text: 'Delete', style: 'destructive' as const, onPress: () => handleDelete(cat) }] : []),
+                { text: 'Cancel', style: 'cancel' },
+            ]);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -125,34 +140,45 @@ export const CategoriesScreen: React.FC = () => {
                 keyExtractor={c => String(c.id)}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
+                ListFooterComponent={
+                    <TouchableOpacity style={styles.addFooterBtn} onPress={() => { resetForm(); setShowForm(true); }}>
+                        <Ionicons name="add-circle-outline" size={20} color={Colors.electricBlue} />
+                        <NeonText variant="body" color={Colors.electricBlue}>Add category</NeonText>
+                    </TouchableOpacity>
+                }
                 renderItem={({ item }) => (
-                    <GlassCard style={styles.catCard}>
-                        <CategoryIcon icon={item.icon} color={item.color} size={40} />
-                        <View style={{ flex: 1 }}>
-                            <NeonText variant="body">{item.name}</NeonText>
-                            {item.is_default ? <NeonText variant="caption" color={Colors.textMuted}>Default</NeonText> : null}
-                        </View>
-                        <TouchableOpacity
-                            onPress={() => handleEdit(item)}
-                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                            style={styles.actionBtn}
-                        >
-                            <Ionicons name="pencil-outline" size={18} color={Colors.electricBlue} />
-                        </TouchableOpacity>
-                        {item.is_default ? (
-                            <View style={styles.actionBtn}>
-                                <Ionicons name="lock-closed-outline" size={18} color={Colors.textMuted} />
+                    <TouchableOpacity activeOpacity={0.85} onLongPress={() => handleLongPress(item)}>
+                        <GlassCard style={styles.catCard}>
+                            <CategoryIcon icon={item.icon} color={item.color} size={40} />
+                            <View style={{ flex: 1 }}>
+                                <NeonText variant="body">{item.name}</NeonText>
+                                {item.is_default
+                                    ? <NeonText variant="caption" color={Colors.textMuted}>Default · hold to edit</NeonText>
+                                    : <NeonText variant="caption" color={Colors.textMuted}>Hold to edit or delete</NeonText>
+                                }
                             </View>
-                        ) : (
                             <TouchableOpacity
-                                onPress={() => handleDelete(item)}
+                                onPress={() => handleEdit(item)}
                                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                 style={styles.actionBtn}
                             >
-                                <Ionicons name="trash-outline" size={18} color={Colors.neonPink} />
+                                <Ionicons name="pencil-outline" size={18} color={Colors.electricBlue} />
                             </TouchableOpacity>
-                        )}
-                    </GlassCard>
+                            {item.is_default ? (
+                                <View style={styles.actionBtn}>
+                                    <Ionicons name="lock-closed-outline" size={18} color={Colors.textMuted} />
+                                </View>
+                            ) : (
+                                <TouchableOpacity
+                                    onPress={() => handleDelete(item)}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                    style={styles.actionBtn}
+                                >
+                                    <Ionicons name="trash-outline" size={18} color={Colors.neonPink} />
+                                </TouchableOpacity>
+                            )}
+                        </GlassCard>
+                    </TouchableOpacity>
                 )}
             />
         </View>
@@ -170,6 +196,7 @@ const styles = StyleSheet.create({
     colorBtn: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: 'transparent' },
     colorBtnSelected: { borderColor: Colors.textPrimary, transform: [{ scale: 1.2 }] },
     list: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
+    addFooterBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: 12, borderWidth: 1.5, borderStyle: 'dashed', borderColor: Colors.electricBlue + '60', marginBottom: Spacing.lg },
     catCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.sm, paddingVertical: Spacing.md },
     actionBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
 });

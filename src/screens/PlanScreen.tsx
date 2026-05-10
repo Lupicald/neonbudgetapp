@@ -137,6 +137,12 @@ export const PlanScreen: React.FC = () => {
                 color: tab === o.v ? Colors.bg : Colors.textSecondary }}>{o.l}</Text>
             </Pill>
           ))}
+          {/* Subscriptions navigates to its own screen */}
+          <Pill active={false} onPress={() => navigation.navigate('Subscriptions')} size="md"
+            style={{ flexDirection: 'row', gap: 6 }}>
+            <Ionicons name="repeat-outline" size={13} color={Colors.textSecondary} />
+            <Text style={{ fontSize: 13, fontWeight: '500', color: Colors.textSecondary }}>Subscriptions</Text>
+          </Pill>
         </ScrollView>
 
         {/* BUDGETS */}

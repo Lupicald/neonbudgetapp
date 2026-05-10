@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, HeroCard, Amount, SumariButton, SectionHeader, TopBar } from '../components/SumariPrimitives';
 import { Colors, Spacing, BorderRadius, CategoryColors } from '../theme';
-import { getAccounts, addAccount, updateAccount, deleteAccount, getTotalBalance } from '../database/accountService';
+import { getAccounts, addAccount, updateAccount, updateAccountBalance, deleteAccount, getTotalBalance } from '../database/accountService';
 import { Account, AccountType } from '../types';
 
 const ACCOUNT_TYPES: { label: string; value: AccountType; icon: string }[] = [
@@ -56,6 +56,7 @@ export const AccountsScreen: React.FC = () => {
     const bal = parseFloat(form.balance) || 0;
     if (editId) {
       await updateAccount(editId, form.name, form.type, form.icon, form.color);
+      if (form.balance !== '') await updateAccountBalance(editId, bal);
     } else {
       await addAccount(form.name, form.type, bal, form.icon, form.color);
     }
@@ -154,16 +155,12 @@ export const AccountsScreen: React.FC = () => {
                 placeholder="Account name" placeholderTextColor={Colors.textMuted} />
             </View>
 
-            {!editId && (
-              <>
-                <Text style={s.fieldLabel}>Initial balance</Text>
-                <View style={s.field}>
-                  <TextInput style={s.fieldInput} value={form.balance}
-                    onChangeText={v => setForm(f => ({ ...f, balance: v }))}
-                    placeholder="0.00" placeholderTextColor={Colors.textMuted} keyboardType="decimal-pad" />
-                </View>
-              </>
-            )}
+            <Text style={s.fieldLabel}>{editId ? 'Balance' : 'Initial balance'}</Text>
+            <View style={s.field}>
+              <TextInput style={s.fieldInput} value={form.balance}
+                onChangeText={v => setForm(f => ({ ...f, balance: v }))}
+                placeholder="0.00" placeholderTextColor={Colors.textMuted} keyboardType="decimal-pad" />
+            </View>
 
             <Text style={s.fieldLabel}>Type</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.lg }}>

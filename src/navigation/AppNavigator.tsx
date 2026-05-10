@@ -26,6 +26,7 @@ import { MerchantsScreen } from '../screens/MerchantsScreen';
 import { CalendarScreen } from '../screens/CalendarScreen';
 import { TimelineScreen } from '../screens/TimelineScreen';
 import { RecurringScreen } from '../screens/RecurringScreen';
+import { SubscriptionsScreen } from '../screens/SubscriptionsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -75,6 +76,7 @@ const PlanStack = () => (
     <Stack.Screen name="BudgetsManage" component={BudgetsScreen} />
     <Stack.Screen name="GoalsManage" component={GoalsScreen} />
     <Stack.Screen name="RecurringManage" component={RecurringScreen} />
+    <Stack.Screen name="Subscriptions" component={SubscriptionsScreen} />
   </Stack.Navigator>
 );
 

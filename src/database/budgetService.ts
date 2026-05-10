@@ -5,17 +5,19 @@ import { getMonthKey } from '../utils';
 export const getBudgets = async (month?: string): Promise<Budget[]> => {
     const db = await getDatabase();
     const m = month || getMonthKey();
+    // Returns both month-specific budgets AND global budgets (month='global')
+    // If a category has both, the month-specific one takes precedence
     return await db.getAllAsync<Budget>(
-        `SELECT b.*, 
-            COALESCE(c.name, 'All Expenses') as category_name, 
-            COALESCE(c.icon, 'apps-outline') as category_icon, 
+        `SELECT b.*,
+            COALESCE(c.name, 'All Expenses') as category_name,
+            COALESCE(c.icon, 'apps-outline') as category_icon,
             COALESCE(c.color, '#1FCC58') as category_color,
             COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE (b.category_id = -1 OR t.category_id = b.category_id) AND t.type = 'expense' AND t.date LIKE ?), 0) as spent
          FROM budgets b
          LEFT JOIN categories c ON b.category_id = c.id
-         WHERE b.month = ?
+         WHERE b.month = ? OR (b.month = 'global' AND b.category_id NOT IN (SELECT category_id FROM budgets WHERE month = ?))
          ORDER BY c.name ASC`,
-        [`${m}%`, m]
+        [`${m}%`, m, m]
     );
 };
 

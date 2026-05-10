@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Switch, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,7 @@ export const BudgetsScreen: React.FC = () => {
     const [selectedCat, setSelectedCat] = useState<Category | null>(null);
     const [limitAmount, setLimitAmount] = useState('');
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [isGlobal, setIsGlobal] = useState(false);
 
     const loadData = useCallback(async () => {
         const [b, c] = await Promise.all([getBudgets(), getCategories()]);
@@ -38,13 +39,13 @@ export const BudgetsScreen: React.FC = () => {
         if (editingId) {
             await updateBudget(editingId, numLimit);
         } else {
-            // Check if budget already exists for this category
-            const exists = budgets.find(b => b.category_id === selectedCat.id);
+            const targetMonth = isGlobal ? 'global' : undefined;
+            const exists = budgets.find(b => b.category_id === selectedCat.id && (isGlobal ? b.month === 'global' : b.month === getMonthKey()));
             if (exists) {
                 Alert.alert('Error', 'A budget for this category already exists');
                 return;
             }
-            await addBudget(selectedCat.id, numLimit);
+            await addBudget(selectedCat.id, numLimit, targetMonth);
         }
 
         setShowForm(false);
@@ -56,6 +57,7 @@ export const BudgetsScreen: React.FC = () => {
         setEditingId(null);
         setLimitAmount('');
         setSelectedCat(null);
+        setIsGlobal(false);
     };
 
     const handleEdit = (b: Budget) => {
@@ -106,9 +108,34 @@ export const BudgetsScreen: React.FC = () => {
                     if (item.isForm && showForm) {
                         return (
                             <GlassCard style={styles.form} glowColor={Colors.electricBlue}>
+                                {/* Global toggle */}
+                                {!editingId && (
+                                    <View style={styles.globalRow}>
+                                        <View style={{ flex: 1 }}>
+                                            <NeonText variant="body">Global budget</NeonText>
+                                            <NeonText variant="caption" color={Colors.textMuted}>Applies to all months, not just {getMonthKey()}</NeonText>
+                                        </View>
+                                        <Switch value={isGlobal} onValueChange={v => { setIsGlobal(v); if (v) setSelectedCat(categories[0]); }} thumbColor={isGlobal ? Colors.electricBlue : Colors.textMuted} trackColor={{ false: Colors.border, true: Colors.electricBlue + '60' }} />
+                                    </View>
+                                )}
                                 <NeonText variant="label" style={styles.label}>CATEGORY</NeonText>
+                                {/* All Expenses shortcut */}
+                                {!editingId && (
+                                    <TouchableOpacity
+                                        style={[styles.allExpensesBtn, selectedCat?.id === -1 && { backgroundColor: `${Colors.electricBlue}20`, borderColor: Colors.electricBlue }]}
+                                        onPress={() => setSelectedCat(categories.find(c => c.id === -1) || { id: -1, name: 'All Expenses', icon: 'apps-outline', color: Colors.electricBlue, is_default: 1 })}
+                                        disabled={!!editingId}
+                                    >
+                                        <Ionicons name="apps-outline" size={18} color={selectedCat?.id === -1 ? Colors.electricBlue : Colors.textSecondary} />
+                                        <View style={{ flex: 1 }}>
+                                            <NeonText variant="body" color={selectedCat?.id === -1 ? Colors.electricBlue : Colors.textPrimary}>All Expenses (Global category)</NeonText>
+                                            <NeonText variant="caption" color={Colors.textMuted}>Tracks total spending across all categories</NeonText>
+                                        </View>
+                                        {selectedCat?.id === -1 && <Ionicons name="checkmark-circle" size={20} color={Colors.electricBlue} />}
+                                    </TouchableOpacity>
+                                )}
                                 <View style={styles.catGrid}>
-                                    {categories.filter(c => c.id === selectedCat?.id || !budgets.some(b => b.category_id === c.id)).map(c => (
+                                    {categories.filter(c => c.id !== -1 && (c.id === selectedCat?.id || !budgets.some(b => b.category_id === c.id))).map(c => (
                                         <TouchableOpacity key={c.id}
                                             style={[styles.catBtn, selectedCat?.id === c.id && { backgroundColor: `${c.color}20`, borderColor: c.color }]}
                                             onPress={() => setSelectedCat(c)}
@@ -195,4 +222,6 @@ const styles = StyleSheet.create({
     budgetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     budgetInfo: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     warningBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginTop: Spacing.sm, paddingVertical: Spacing.xs, paddingHorizontal: Spacing.sm, backgroundColor: `${Colors.neonPink}15`, borderRadius: BorderRadius.sm },
+    globalRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: Spacing.md },
+    allExpensesBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.md, borderRadius: BorderRadius.md, borderWidth: 1.5, borderColor: Colors.border, marginBottom: Spacing.md, backgroundColor: 'transparent' },
 });
