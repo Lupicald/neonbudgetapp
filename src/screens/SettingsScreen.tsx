@@ -188,8 +188,7 @@ export const SettingsScreen: React.FC = () => {
                     {navItem('Budgets', 'pie-chart-outline', () => navigation.navigate('Plan', { screen: 'BudgetsManage' }))}
                     {navItem('Goals', 'trophy-outline', () => navigation.navigate('Plan', { screen: 'GoalsManage' }))}
                     {navItem('Achievements', 'medal-outline', () => navigation.navigate('Achievements'))}
-                    {navItem('Calendar', 'calendar-outline', () => navigation.navigate('Home', { screen: 'Calendar' }))}
-                    {navItem('Timeline', 'time-outline', () => navigation.navigate('Home', { screen: 'Timeline' }))}
+                    {navItem('Projection', 'calendar-outline', () => navigation.navigate('Plan', { screen: 'PlanMain' }))}
                     {navItem('Transfers', 'swap-horizontal-outline', () => navigation.navigate('Accounts', { screen: 'TransferMoney' }))}
 
                     <TouchableOpacity style={[styles.navItem, { borderBottomWidth: 0 }]} onPress={handleReset}>

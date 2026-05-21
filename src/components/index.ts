@@ -1,19 +1,20 @@
-// Sumari design components
+// Editorial Carbon primitives (canonical)
 export {
   Card, HeroCard, Pill, SumariButton, IconBtn,
-  Amount, SectionHeader, TopBar, CatAvatar,
-  Progress, Ring, MiniBars, AreaChart,
+  Amount, Money, SectionHeader, EditorialHeading, TopBar, CatAvatar,
+  Progress, Ring, MiniBars, AreaChart, Text,
 } from './SumariPrimitives';
 
-// Legacy / utility components (kept for compatibility)
+export { FAB } from './FAB';
 export { ErrorBoundary } from './ErrorBoundary';
 export { FadeIn } from './FadeIn';
 export { CategoryIcon } from './CategoryIcon';
+export { SpendPlannerModal } from './SpendPlannerModal';
 
-// Legacy aliases for old screens still in nav
+// Legacy shims — kept temporarily so unmigrated screens still mount.
+// Slated for removal once every screen uses the editorial primitives directly.
 export { GlassCard } from './GlassCard';
 export { NeonButton } from './NeonButton';
 export { NeonText } from './NeonText';
 export { GlowInput } from './GlowInput';
 export { ProgressBar } from './ProgressBar';
-export { SpendPlannerModal } from './SpendPlannerModal';

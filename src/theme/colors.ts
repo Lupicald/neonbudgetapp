@@ -1,92 +1,117 @@
-// Sumari Design System — dark-first finance theme
+// Sumari — Editorial Carbon (dark, dual-tone)
+// Verde billete + terracota sobre carbón cálido. No neón, no glassmorphism.
 export const Colors = {
-  // Backgrounds
-  bg: '#0B0D0C',
-  bgElevated: '#15181A',
-  bgCard: '#1A1E20',
-  bgCardAlt: '#22272A',
-  bgHero: '#0F1110',
+  // Surfaces
+  bg: '#0E0F0D',          // carbón cálido
+  bgElevated: '#16181B',
+  bgCard: '#1B1E1F',
+  bgCardAlt: '#262A2C',
+  bgHero: '#0A0B0A',
+  bgPressed: '#0B0C0A',
 
-  // Text
-  textPrimary: '#F4F5F0',
-  textSecondary: '#B8BDB5',
-  textTertiary: '#7A8078',
-  textMuted: '#4A504D',
+  // Foreground (cream, no white)
+  textPrimary: '#F2EDE3',
+  textSecondary: '#A8A398',
+  textTertiary: '#6E6A60',
+  textMuted: '#4A4740',
 
-  // Accent — emerald green
-  accent: '#1FCC58',
-  accentSoft: '#163B23',
-  accentGlow: 'rgba(31,204,88,0.25)',
+  // Verde billete (positive / income / healthy)
+  accent: '#4A8F5C',
+  accentLight: '#6BAF7B',
+  accentSoft: 'rgba(74,143,92,0.16)',
+  accentGlow: 'rgba(74,143,92,0.22)',
+  greenDeep: '#1F3A28',
+
+  // Terracota (expense / serious alert)
+  rust: '#C9603D',
+  rustLight: '#E07A55',
+  rustSoft: 'rgba(201,96,61,0.14)',
+  rustDeep: '#3D1E14',
+
+  // Ámbar (warning / upcoming)
+  amber: '#D9A246',
+  amberSoft: 'rgba(217,162,70,0.14)',
 
   // Semantic
-  positive: '#1FCC58',
-  negative: '#FF5A6B',
-  negativeSoft: '#3B1A1F',
-  warning: '#FFB547',
-  warningSoft: '#3B2A12',
-  info: '#5AA0FF',
-  infoSoft: '#0F1E35',
-  orange: '#FF8A3D',
+  positive: '#4A8F5C',
+  negative: '#C9603D',
+  negativeSoft: 'rgba(201,96,61,0.14)',
+  warning: '#D9A246',
+  warningSoft: 'rgba(217,162,70,0.14)',
+  info: '#5C8FA8',         // azul plomo (único frío)
+  infoSoft: 'rgba(92,143,168,0.14)',
+  orange: '#C9603D',       // alias → rust
 
-  // Borders
-  border: 'rgba(255,255,255,0.06)',
-  borderStrong: 'rgba(255,255,255,0.12)',
+  // Borders (hairlines)
+  border: 'rgba(242,237,227,0.07)',
+  borderStrong: 'rgba(242,237,227,0.13)',
 
-  // Controls
-  onAccent: '#0B0D0C',
-  onHero: '#F4F5F0',
+  // Foreground-on-X
+  onAccent: '#0E0F0D',
+  onHero: '#F2EDE3',
+  onRust: '#F2EDE3',
 
-  // Legacy aliases kept for backward compat with services
-  background: '#0B0D0C',
-  backgroundCard: '#1A1E20',
-  backgroundLight: '#15181A',
-  surface: '#1A1E20',
-  surfaceLight: '#22272A',
-  income: '#1FCC58',
-  expense: '#FF5A6B',
-  danger: '#FF5A6B',
-  success: '#1FCC58',
-  borderLight: 'rgba(255,255,255,0.12)',
-  tabBarBackground: '#0B0D0C',
-  tabBarActive: '#F4F5F0',
-  tabBarInactive: '#7A8078',
+  // Back-compat aliases (so untouched screens keep working under new palette)
+  background: '#0E0F0D',
+  backgroundCard: '#1B1E1F',
+  backgroundLight: '#16181B',
+  surface: '#1B1E1F',
+  surfaceLight: '#262A2C',
+  income: '#4A8F5C',
+  expense: '#C9603D',
+  danger: '#C9603D',
+  success: '#4A8F5C',
+  borderLight: 'rgba(242,237,227,0.13)',
+  tabBarBackground: '#0E0F0D',
+  tabBarActive: '#F2EDE3',
+  tabBarInactive: '#6E6A60',
 
-  // Legacy color names (kept so old screens compile)
-  neonPink: '#FF5A6B',
-  neonOrange: '#FFB547',
-  neonYellow: '#FFB547',
-  cyberGreen: '#1FCC58',
-  neonPurple: '#1FCC58',
-  neonPurpleLight: '#4DDB80',
-  neonPurpleDark: '#0D8F3E',
-  electricBlue: '#5AA0FF',
-  electricBlueLight: '#80B8FF',
-  electricBlueDark: '#2E73D9',
-  cyberGreenLight: '#4DDB80',
-  cyberGreenDark: '#0D8F3E',
-  neonPinkLight: '#FF8095',
-  neonPinkDark: '#CC1F3B',
-  glowPurple: '#1FCC58',
-  glowBlue: '#5AA0FF',
-  glowGreen: '#1FCC58',
-  glowPink: '#FF5A6B',
-  glowOrange: '#FFB547',
-  gradientPurple: ['#1FCC58', '#0D8F3E'] as string[],
-  gradientPurpleBlue: ['#1FCC58', '#5AA0FF'] as string[],
-  gradientBlue: ['#5AA0FF', '#2E73D9'] as string[],
-  gradientGreen: ['#1FCC58', '#0D8F3E'] as string[],
-  gradientPink: ['#FF5A6B', '#CC1F3B'] as string[],
-  gradientDark: ['#22272A', '#1A1E20'] as string[],
-  gradientCard: ['#22272A', '#1A1E20'] as string[],
-  gradientHero: ['#15181A', '#0B0D0C'] as string[],
-  gradientIncome: ['#1FCC58', '#0D8F3E'] as string[],
-  gradientExpense: ['#FF5A6B', '#CC1F3B'] as string[],
-  gradientPlanned: ['#1FCC58', '#0D8F3E'] as string[],
-  backgroundCardLight: '#22272A',
+  // Legacy color tokens — repointed to Editorial Carbon equivalents.
+  // Kept ONLY so any unmigrated reference still compiles; new code must use semantic names.
+  neonPink: '#C9603D',
+  neonOrange: '#D9A246',
+  neonYellow: '#D9A246',
+  cyberGreen: '#4A8F5C',
+  neonPurple: '#5C8FA8',
+  neonPurpleLight: '#6BAF7B',
+  neonPurpleDark: '#1F3A28',
+  electricBlue: '#5C8FA8',
+  electricBlueLight: '#7AA9BE',
+  electricBlueDark: '#3D6C81',
+  cyberGreenLight: '#6BAF7B',
+  cyberGreenDark: '#1F3A28',
+  neonPinkLight: '#E07A55',
+  neonPinkDark: '#9B4530',
+  glowPurple: '#5C8FA8',
+  glowBlue: '#5C8FA8',
+  glowGreen: '#4A8F5C',
+  glowPink: '#C9603D',
+  glowOrange: '#D9A246',
+  // Gradient arrays — kept as flat dual-tone (no actual gradient in Editorial Carbon).
+  gradientPurple:     ['#4A8F5C', '#1F3A28'] as string[],
+  gradientPurpleBlue: ['#4A8F5C', '#5C8FA8'] as string[],
+  gradientBlue:       ['#5C8FA8', '#3D6C81'] as string[],
+  gradientGreen:      ['#4A8F5C', '#1F3A28'] as string[],
+  gradientPink:       ['#C9603D', '#3D1E14'] as string[],
+  gradientDark:       ['#262A2C', '#1B1E1F'] as string[],
+  gradientCard:       ['#262A2C', '#1B1E1F'] as string[],
+  gradientHero:       ['#16181B', '#0E0F0D'] as string[],
+  gradientIncome:     ['#4A8F5C', '#1F3A28'] as string[],
+  gradientExpense:    ['#C9603D', '#3D1E14'] as string[],
+  gradientPlanned:    ['#D9A246', '#3D1E14'] as string[],
+  backgroundCardLight: '#262A2C',
 };
 
+// Editorial dual-tone palette — verde billete, terracota, ámbar y tonos planos.
 export const CategoryColors = [
-  '#1FCC58', '#FF8A3D', '#5AA0FF', '#B58DFF', '#FF5A8A',
-  '#FF5A6B', '#FFB547', '#E57AFF', '#FF8A3D', '#5AA0FF',
-  '#1FCC58', '#FFB547', '#B58DFF', '#1FCC58', '#FF5A6B',
+  '#4A8F5C', // verde billete
+  '#C9603D', // terracota
+  '#D9A246', // ámbar
+  '#7A8F5C', // verde salvia
+  '#A8A398', // gris cálido
+  '#8FA34A', // oliva
+  '#6E6A60', // fango
+  '#B58A4A', // mostaza
+  '#5C8FA8', // azul plomo
+  '#9E6E5C', // tierra
 ];

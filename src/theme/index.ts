@@ -1,4 +1,4 @@
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { Platform, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { Colors } from './colors';
 
 export { Colors, CategoryColors } from './colors';
@@ -14,10 +14,10 @@ export const Spacing = {
 };
 
 export const BorderRadius = {
-  xs: 8,
-  sm: 12,
-  md: 16,
-  lg: 20,
+  xs: 6,
+  sm: 10,
+  md: 14,
+  lg: 18,
   xl: 24,
   xxl: 32,
   full: 999,
@@ -46,11 +46,16 @@ export const FontWeight = {
   extrabold: '800' as TextStyle['fontWeight'],
 };
 
-// Font families
+// Font families — Editorial Carbon system
+// display: Instrument Serif italic — section titles, hero amounts, "moments"
+// serif:   Instrument Serif roman — editorial closer, currency glyph
+// sans:    system SF Pro / Roboto — UI / body / numerals
+// mono:    Menlo — micro labels, ticker-style meta
 export const FontFamily = {
-  sans: undefined,            // system font (San Francisco / Roboto)
-  display: 'InstrumentSerif_400Regular_Italic', // Instrument Serif italic
-  mono: undefined,
+  sans: undefined as string | undefined,
+  display: 'InstrumentSerif_400Regular_Italic' as string | undefined,
+  serif: 'InstrumentSerif_400Regular' as string | undefined,
+  mono: Platform.OS === 'ios' ? 'Menlo' : 'monospace' as string | undefined,
 };
 
 export const Shadows = {
@@ -69,40 +74,11 @@ export const Shadows = {
     elevation: 2,
   },
   fab: {
-    shadowColor: '#1FCC58',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.30,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  // Legacy aliases
-  glowPurple: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  glowGreen: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  glowBlue: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  glowPink: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.55,
+    shadowRadius: 30,
+    elevation: 14,
   },
 };
 

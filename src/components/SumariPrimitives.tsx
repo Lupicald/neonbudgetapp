@@ -1,20 +1,58 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle,
+  View, Text as RNText, TouchableOpacity, StyleSheet, ViewStyle, TextStyle,
 } from 'react-native';
 import Svg, { Circle, Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Colors, Spacing, BorderRadius, FontFamily } from '../theme';
 
+// ───────────────────────────────────────────────────────────
+// Editorial typographic primitive
+// ───────────────────────────────────────────────────────────
+type TextVariant = 'display' | 'heading' | 'body' | 'meta' | 'overline' | 'mono' | 'caption' | 'label';
+
+interface TextProps {
+  children: React.ReactNode;
+  variant?: TextVariant;
+  color?: string;
+  size?: number;
+  weight?: TextStyle['fontWeight'];
+  italic?: boolean;
+  align?: TextStyle['textAlign'];
+  numberOfLines?: number;
+  style?: TextStyle | TextStyle[];
+}
+const variantStyle: Record<TextVariant, TextStyle> = {
+  display:  { fontFamily: FontFamily.display, fontSize: 22, letterSpacing: -0.4, color: Colors.textPrimary, fontStyle: 'italic' },
+  heading:  { fontSize: 17, fontWeight: '600', letterSpacing: -0.2, color: Colors.textPrimary },
+  body:     { fontSize: 14, fontWeight: '400', color: Colors.textPrimary, lineHeight: 20 },
+  meta:     { fontSize: 12, color: Colors.textTertiary },
+  overline: { fontSize: 10, fontWeight: '500', letterSpacing: 1.8, textTransform: 'uppercase', color: Colors.textTertiary },
+  mono:     { fontFamily: FontFamily.mono, fontSize: 10, color: Colors.textTertiary, letterSpacing: 0.2 },
+  caption:  { fontSize: 11, fontWeight: '400', color: Colors.textSecondary },
+  label:    { fontSize: 10, fontWeight: '500', letterSpacing: 1.4, textTransform: 'uppercase', color: Colors.textTertiary },
+};
+export const Text: React.FC<TextProps> = ({ children, variant = 'body', color, size, weight, italic, align, numberOfLines, style }) => {
+  const base = variantStyle[variant];
+  const extra: TextStyle = {
+    ...(color ? { color } : null),
+    ...(size != null ? { fontSize: size } : null),
+    ...(weight ? { fontWeight: weight } : null),
+    ...(italic ? { fontStyle: 'italic' as const } : null),
+    ...(align ? { textAlign: align } : null),
+  };
+  return <RNText style={[base, extra, style as any]} numberOfLines={numberOfLines}>{children}</RNText>;
+};
+
 // ── Card
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: ViewStyle | ViewStyle[];
   elevated?: boolean;
   onPress?: () => void;
 }
 export const Card: React.FC<CardProps> = ({ children, style, elevated, onPress }) => {
   const content = (
-    <View style={[styles.card, elevated && styles.cardElevated, style]}>
+    <View style={[styles.card, elevated && styles.cardElevated, style as any]}>
       {children}
     </View>
   );
@@ -22,15 +60,15 @@ export const Card: React.FC<CardProps> = ({ children, style, elevated, onPress }
   return content;
 };
 
-// ── HeroCard (pure black card)
+// ── HeroCard — editorial hero with hairline corner glow
 interface HeroCardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: ViewStyle | ViewStyle[];
   onPress?: () => void;
 }
 export const HeroCard: React.FC<HeroCardProps> = ({ children, style, onPress }) => {
   const content = (
-    <View style={[styles.heroCard, style]}>
+    <View style={[styles.heroCard, style as any]}>
       {children}
     </View>
   );
@@ -38,7 +76,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({ children, style, onPress }) 
   return content;
 };
 
-// ── Pill tab/chip
+// ── Pill — segmented chip
 interface PillProps {
   children: React.ReactNode;
   active?: boolean;
@@ -46,18 +84,19 @@ interface PillProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'accent';
+  variant?: 'default' | 'accent' | 'rust' | 'amber';
 }
 export const Pill: React.FC<PillProps> = ({ children, active, onPress, style, textStyle, size = 'md', variant = 'default' }) => {
-  const h = size === 'sm' ? 28 : size === 'lg' ? 40 : 32;
-  const fs = size === 'sm' ? 12 : size === 'lg' ? 15 : 13;
-  const px = size === 'sm' ? 10 : size === 'lg' ? 18 : 14;
-  const bg = active
-    ? (variant === 'accent' ? Colors.accent : Colors.textPrimary)
-    : 'transparent';
-  const color = active
-    ? (variant === 'accent' ? Colors.onAccent : Colors.bg)
-    : Colors.textSecondary;
+  const h = size === 'sm' ? 26 : size === 'lg' ? 40 : 32;
+  const fs = size === 'sm' ? 11 : size === 'lg' ? 15 : 13;
+  const px = size === 'sm' ? 11 : size === 'lg' ? 18 : 14;
+  let bg = 'rgba(242,237,227,0.04)';
+  let fg = Colors.textSecondary;
+  let border: string | undefined = Colors.border;
+  if (active) { bg = Colors.textPrimary; fg = Colors.bg; border = undefined; }
+  else if (variant === 'accent') { bg = Colors.accentSoft; fg = Colors.accentLight; border = undefined; }
+  else if (variant === 'rust')   { bg = Colors.rustSoft;   fg = Colors.rustLight;   border = undefined; }
+  else if (variant === 'amber')  { bg = Colors.amberSoft;  fg = Colors.amber;       border = undefined; }
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -65,13 +104,13 @@ export const Pill: React.FC<PillProps> = ({ children, active, onPress, style, te
       style={[{
         height: h, paddingHorizontal: px, borderRadius: BorderRadius.full,
         backgroundColor: bg,
-        borderWidth: active ? 0 : 1,
-        borderColor: Colors.border,
+        borderWidth: border ? 1 : 0,
+        borderColor: border,
         flexDirection: 'row', alignItems: 'center', gap: 6,
       }, style]}
     >
       {typeof children === 'string' ? (
-        <Text style={[{ fontSize: fs, fontWeight: active ? '600' : '500', color }, textStyle]}>{children}</Text>
+        <RNText style={[{ fontSize: fs, fontWeight: active ? '600' : '500', color: fg }, textStyle]}>{children}</RNText>
       ) : children}
     </TouchableOpacity>
   );
@@ -98,8 +137,8 @@ export const SumariButton: React.FC<ButtonProps> = ({
   if (variant === 'primary') { bg = Colors.accent; fg = Colors.onAccent; }
   else if (variant === 'dark') { bg = Colors.bgHero; fg = Colors.onHero; }
   else if (variant === 'light') { bg = Colors.textPrimary; fg = Colors.bg; }
-  else if (variant === 'soft') { bg = Colors.accentSoft; fg = Colors.accent; }
-  else if (variant === 'danger') { bg = Colors.negative; fg = '#fff'; }
+  else if (variant === 'soft') { bg = Colors.accentSoft; fg = Colors.accentLight; }
+  else if (variant === 'danger') { bg = Colors.rust; fg = Colors.onRust; }
   else { bg = 'transparent'; fg = Colors.textPrimary; border = Colors.borderStrong; }
   return (
     <TouchableOpacity
@@ -115,7 +154,7 @@ export const SumariButton: React.FC<ButtonProps> = ({
       } as ViewStyle, style]}
     >
       {icon}
-      <Text style={{ fontSize: fs, fontWeight: '600', color: fg }}>{children as string}</Text>
+      <RNText style={{ fontSize: fs, fontWeight: '600', color: fg }}>{children as string}</RNText>
     </TouchableOpacity>
   );
 };
@@ -128,7 +167,7 @@ interface IconBtnProps {
   variant?: 'ghost' | 'accent' | 'dark' | 'soft';
   style?: ViewStyle;
 }
-export const IconBtn: React.FC<IconBtnProps> = ({ icon, onPress, size = 40, variant = 'ghost', style }) => {
+export const IconBtn: React.FC<IconBtnProps> = ({ icon, onPress, size = 36, variant = 'ghost', style }) => {
   const bg = variant === 'accent' ? Colors.accent : variant === 'dark' ? Colors.bgHero : variant === 'soft' ? Colors.bgCardAlt : 'transparent';
   const border = variant === 'ghost' ? Colors.border : undefined;
   return (
@@ -146,11 +185,12 @@ export const IconBtn: React.FC<IconBtnProps> = ({ icon, onPress, size = 40, vari
   );
 };
 
-// ── Amount display
+// ── Money — editorial typographic numeral
+// $ is rendered in serif italic at reduced opacity. Numbers are tabular.
+// Uses Unicode minus (U+2212) and plus signs, not hyphen-minus.
 interface AmountProps {
   value: number;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'hero';
-  currency?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'hero' | 'mega';
   sign?: boolean;
   color?: string;
   style?: TextStyle;
@@ -159,25 +199,34 @@ export const Amount: React.FC<AmountProps> = ({ value, size = 'md', sign, color,
   const abs = Math.abs(value);
   const formatted = abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const [intPart, decPart] = formatted.split('.');
-  const fs = size === 'hero' ? 52 : size === 'xl' ? 36 : size === 'lg' ? 26 : size === 'md' ? 17 : 14;
+  const fs = size === 'mega' ? 56 : size === 'hero' ? 44 : size === 'xl' ? 32 : size === 'lg' ? 24 : size === 'md' ? 17 : 13;
   const signStr = sign ? (value >= 0 ? '+' : '−') : (value < 0 ? '−' : '');
   const col = color ?? Colors.textPrimary;
-  const isLarge = size === 'hero' || size === 'xl';
+  const isLarge = size === 'mega' || size === 'hero' || size === 'xl';
+  const curSize = isLarge ? Math.round(fs * 0.42) : Math.round(fs * 0.7);
+  const decSize = isLarge ? Math.round(fs * 0.42) : Math.round(fs * 0.82);
   return (
-    <Text style={[{
-      fontSize: fs, fontWeight: isLarge ? '500' : '600', color: col,
-      letterSpacing: size === 'hero' ? -1.5 : size === 'xl' ? -1 : -0.3,
+    <RNText style={[{
+      fontSize: fs,
+      fontWeight: isLarge ? '500' : '600',
+      color: col,
+      letterSpacing: size === 'mega' ? -2 : size === 'hero' ? -1.4 : size === 'xl' ? -0.8 : -0.2,
       fontVariant: ['tabular-nums'],
     }, style]}>
       {signStr}
-      <Text style={{ fontSize: isLarge ? fs * 0.38 : fs * 0.7, opacity: 0.6, fontWeight: '500' }}>$</Text>
+      <RNText style={{
+        fontFamily: FontFamily.display, fontStyle: 'italic', fontWeight: '400',
+        fontSize: curSize, color: Colors.textTertiary,
+      }}>$</RNText>
       {intPart}
-      <Text style={{ fontSize: fs * (isLarge ? 0.5 : 0.8), opacity: 0.45 }}>.{decPart}</Text>
-    </Text>
+      <RNText style={{ fontSize: decSize, color: Colors.textTertiary, fontWeight: '400' }}>.{decPart}</RNText>
+    </RNText>
   );
 };
+// Alias to align with design `<Money/>` nomenclature.
+export const Money = Amount;
 
-// ── Section header
+// ── Section header — overline label + optional action
 interface SectionHeaderProps {
   label: string;
   action?: string;
@@ -187,11 +236,33 @@ interface SectionHeaderProps {
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ label, action, onAction, style }) => (
   <View style={[{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: Spacing.xl }, style]}>
-    <Text style={{ fontSize: 11, fontWeight: '500', color: Colors.textTertiary,
-      textTransform: 'uppercase', letterSpacing: 1.6 }}>{label}</Text>
+    <RNText style={{ fontSize: 10, fontWeight: '500', color: Colors.textTertiary,
+      textTransform: 'uppercase', letterSpacing: 1.8 }}>{label}</RNText>
     {action && (
-      <TouchableOpacity onPress={onAction} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <Text style={{ fontSize: 12, fontWeight: '500', color: Colors.textSecondary }}>{action}</Text>
+      <TouchableOpacity onPress={onAction}>
+        <RNText style={{ fontSize: 11, fontWeight: '500', color: Colors.textTertiary,
+          textTransform: 'uppercase', letterSpacing: 1.4 }}>{action}</RNText>
+      </TouchableOpacity>
+    )}
+  </View>
+);
+
+// ── EditorialHeading — serif italic section title (Inicio, Plan, etc.)
+interface EditorialHeadingProps {
+  children: React.ReactNode;
+  action?: string;
+  onAction?: () => void;
+  style?: ViewStyle;
+}
+export const EditorialHeading: React.FC<EditorialHeadingProps> = ({ children, action, onAction, style }) => (
+  <View style={[{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between',
+    marginHorizontal: Spacing.xl, marginTop: 28, marginBottom: 10 }, style]}>
+    <RNText style={{ fontFamily: FontFamily.display, fontStyle: 'italic',
+      fontSize: 22, letterSpacing: -0.4, color: Colors.textPrimary }}>{children}</RNText>
+    {action && (
+      <TouchableOpacity onPress={onAction}>
+        <RNText style={{ fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase',
+          color: Colors.textTertiary }}>{action}</RNText>
       </TouchableOpacity>
     )}
   </View>
@@ -212,14 +283,15 @@ export const TopBar: React.FC<TopBarProps> = ({ title, subtitle, left, right, la
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 }}>
       {left}
       <View>
-        {subtitle && <Text style={{ fontSize: 11, color: Colors.textTertiary,
-          textTransform: 'uppercase', letterSpacing: 1.4, marginBottom: 2 }}>{subtitle}</Text>}
-        <Text style={{
+        {subtitle && <RNText style={{ fontSize: 10, color: Colors.textTertiary,
+          textTransform: 'uppercase', letterSpacing: 1.6, marginBottom: 2 }}>{subtitle}</RNText>}
+        <RNText style={{
           fontFamily: large ? FontFamily.display : undefined,
+          fontStyle: large ? 'italic' : 'normal',
           fontWeight: large ? '400' : '600',
-          fontSize: large ? 30 : 18,
-          color: Colors.textPrimary, letterSpacing: large ? -0.8 : -0.3,
-        }}>{title}</Text>
+          fontSize: large ? 28 : 17,
+          color: Colors.textPrimary, letterSpacing: large ? -0.6 : -0.2,
+        }}>{title}</RNText>
       </View>
     </View>
     <View style={{ flexDirection: 'row', gap: Spacing.sm }}>{right}</View>
@@ -233,10 +305,11 @@ interface CatAvatarProps {
   size?: number;
   style?: ViewStyle;
 }
-export const CatAvatar: React.FC<CatAvatarProps> = ({ icon, color, size = 40, style }) => (
+export const CatAvatar: React.FC<CatAvatarProps> = ({ icon, color, size = 36, style }) => (
   <View style={[{
-    width: size, height: size, borderRadius: BorderRadius.full,
-    backgroundColor: color + '20',
+    width: size, height: size, borderRadius: BorderRadius.sm,
+    backgroundColor: 'rgba(242,237,227,0.05)',
+    borderWidth: 1, borderColor: color + '22',
     alignItems: 'center', justifyContent: 'center',
   }, style]}>
     {icon}
@@ -251,11 +324,11 @@ interface ProgressProps {
   height?: number;
   style?: ViewStyle;
 }
-export const Progress: React.FC<ProgressProps> = ({ value, max = 100, color, height = 6, style }) => {
+export const Progress: React.FC<ProgressProps> = ({ value, max = 100, color, height = 4, style }) => {
   const pct = Math.max(0, Math.min(1, value / max));
   const c = color ?? Colors.accent;
   return (
-    <View style={[{ width: '100%', height, backgroundColor: Colors.bgCardAlt,
+    <View style={[{ width: '100%', height, backgroundColor: 'rgba(242,237,227,0.07)',
       borderRadius: BorderRadius.full, overflow: 'hidden' }, style]}>
       <View style={{ width: `${pct * 100}%`, height: '100%', backgroundColor: c,
         borderRadius: BorderRadius.full }}/>
@@ -272,8 +345,9 @@ interface RingProps {
   color?: string;
   label?: string;
   sublabel?: string;
+  children?: React.ReactNode;
 }
-export const Ring: React.FC<RingProps> = ({ value, max = 100, size = 80, stroke = 8, color, label, sublabel }) => {
+export const Ring: React.FC<RingProps> = ({ value, max = 100, size = 80, stroke = 6, color, label, sublabel, children }) => {
   const pct = Math.max(0, Math.min(1, value / max));
   const r = (size - stroke) / 2;
   const cf = 2 * Math.PI * r;
@@ -288,8 +362,14 @@ export const Ring: React.FC<RingProps> = ({ value, max = 100, size = 80, stroke 
           strokeLinecap="round"/>
       </Svg>
       <View style={{ alignItems: 'center' }}>
-        {label && <Text style={{ fontSize: size > 70 ? 20 : 14, fontWeight: '600', color: Colors.textPrimary }}>{label}</Text>}
-        {sublabel && <Text style={{ fontSize: 9, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 1 }}>{sublabel}</Text>}
+        {children ? children : (
+          <>
+            {label && <RNText style={{ fontFamily: FontFamily.display, fontStyle: 'italic',
+              fontSize: size > 70 ? 26 : 16, color: Colors.textPrimary, lineHeight: size > 70 ? 28 : 18 }}>{label}</RNText>}
+            {sublabel && <RNText style={{ fontSize: 9, color: Colors.textTertiary, textTransform: 'uppercase',
+              letterSpacing: 1.4, marginTop: 2 }}>{sublabel}</RNText>}
+          </>
+        )}
       </View>
     </View>
   );
@@ -315,7 +395,7 @@ export const MiniBars: React.FC<MiniBarsProps> = ({ data, color, height = 48, ba
         return (
           <View key={i} style={{
             width: barWidth, height: h, borderRadius: 3,
-            backgroundColor: v < 0 ? Colors.negative : c,
+            backgroundColor: v < 0 ? Colors.rust : c,
             opacity: active ? 1 : 0.7,
           }}/>
         );
@@ -332,7 +412,7 @@ interface AreaChartProps {
   color?: string;
   strokeWidth?: number;
 }
-export const AreaChart: React.FC<AreaChartProps> = ({ data, width = 300, height = 80, color, strokeWidth = 2 }) => {
+export const AreaChart: React.FC<AreaChartProps> = ({ data, width = 300, height = 80, color, strokeWidth = 1.5 }) => {
   const c = color ?? Colors.accent;
   if (!data || data.length < 2) return null;
   const max = Math.max(...data);
@@ -357,7 +437,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({ data, width = 300, height 
     <Svg width={width} height={height}>
       <Defs>
         <LinearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0%" stopColor={c} stopOpacity="0.25"/>
+          <Stop offset="0%" stopColor={c} stopOpacity="0.22"/>
           <Stop offset="100%" stopColor={c} stopOpacity="0"/>
         </LinearGradient>
       </Defs>
@@ -379,9 +459,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bgElevated,
   },
   heroCard: {
-    backgroundColor: Colors.bgHero,
+    backgroundColor: Colors.bgElevated,
     borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
+    padding: 22,
     borderWidth: 1,
     borderColor: Colors.borderStrong,
     overflow: 'hidden',

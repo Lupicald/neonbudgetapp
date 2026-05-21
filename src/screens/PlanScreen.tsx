@@ -128,7 +128,7 @@ export const PlanScreen: React.FC = () => {
             { v: 'budgets', l: 'Budgets', i: 'pie-chart-outline' },
             { v: 'goals', l: 'Goals', i: 'trophy-outline' },
             { v: 'recurring', l: 'Recurring', i: 'repeat-outline' },
-            { v: 'planner', l: 'Planner', i: 'calendar-outline' },
+            { v: 'planner', l: 'Proyección', i: 'calendar-outline' },
           ] as { v: Tab; l: string; i: string }[]).map(o => (
             <Pill key={o.v} active={tab === o.v} onPress={() => setTab(o.v)} size="md"
               style={{ flexDirection: 'row', gap: 6 }}>
@@ -137,18 +137,6 @@ export const PlanScreen: React.FC = () => {
                 color: tab === o.v ? Colors.bg : Colors.textSecondary }}>{o.l}</Text>
             </Pill>
           ))}
-          {/* Subscriptions navigates to its own screen */}
-          <Pill active={false} onPress={() => navigation.navigate('Subscriptions')} size="md"
-            style={{ flexDirection: 'row', gap: 6 }}>
-            <Ionicons name="repeat-outline" size={13} color={Colors.textSecondary} />
-            <Text style={{ fontSize: 13, fontWeight: '500', color: Colors.textSecondary }}>Subscriptions</Text>
-          </Pill>
-          {/* Income Planner navigates to its own screen */}
-          <Pill active={false} onPress={() => navigation.navigate('IncomePlanner')} size="md"
-            style={{ flexDirection: 'row', gap: 6 }}>
-            <Ionicons name="calendar-outline" size={13} color={Colors.textSecondary} />
-            <Text style={{ fontSize: 13, fontWeight: '500', color: Colors.textSecondary }}>Income Planner</Text>
-          </Pill>
         </ScrollView>
 
         {/* BUDGETS */}

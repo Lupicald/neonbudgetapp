@@ -1,64 +1,19 @@
+// Legacy shim — kept temporarily so unmigrated screens still mount.
+// New code MUST use <Card /> or <HeroCard /> from SumariPrimitives.
 import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { BorderRadius, Spacing, Colors } from '../theme';
+import { ViewStyle, StyleProp } from 'react-native';
+import { Card, HeroCard } from './SumariPrimitives';
 
 interface GlassCardProps {
-    children: React.ReactNode;
-    style?: StyleProp<ViewStyle>;
-    glowColor?: string;  // kept for API compat — unused
-    noBorder?: boolean;
-    gradient?: boolean;  // kept for API compat — unused
-    hero?: boolean;
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  glowColor?: string;
+  noBorder?: boolean;
+  gradient?: boolean;
+  hero?: boolean;
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({
-    children,
-    style,
-    glowColor,
-    noBorder = false,
-    gradient = false,
-    hero = false,
-}) => {
-    return (
-        <View
-            style={[
-                styles.card,
-                hero ? styles.heroCard : styles.normalCard,
-                !noBorder && styles.border,
-                style,
-            ]}
-        >
-            {children}
-        </View>
-    );
+export const GlassCard: React.FC<GlassCardProps> = ({ children, style, hero }) => {
+  if (hero) return <HeroCard style={style as any}>{children}</HeroCard>;
+  return <Card style={style as any}>{children}</Card>;
 };
-
-const styles = StyleSheet.create({
-    card: {
-        borderRadius: 16,
-        overflow: 'hidden',
-    },
-    normalCard: {
-        backgroundColor: '#101710',
-        padding: Spacing.lg,
-        shadowColor: Colors.accent,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-        elevation: 6,
-    },
-    heroCard: {
-        backgroundColor: '#162016',
-        padding: Spacing.xxl,
-        borderRadius: 20,
-        shadowColor: Colors.accent,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-        elevation: 8,
-    },
-    border: {
-        borderWidth: 1,
-        borderColor: Colors.accent + '1A',
-    },
-});

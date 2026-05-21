@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { StatusBar } from 'react-native';
 import { NavigationContainer, NavigationContainerRef, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,8 +7,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { FAB } from '../components/FAB';
 
-// Screens — Sumari design
+// Screens
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { AccountsScreen } from '../screens/AccountsScreen';
 import { AddTransactionScreen } from '../screens/AddTransactionScreen';
@@ -23,12 +24,8 @@ import { AchievementsScreen } from '../screens/AchievementsScreen';
 import { BudgetsScreen } from '../screens/BudgetsScreen';
 import { GoalsScreen } from '../screens/GoalsScreen';
 import { MerchantsScreen } from '../screens/MerchantsScreen';
-import { CalendarScreen } from '../screens/CalendarScreen';
-import { TimelineScreen } from '../screens/TimelineScreen';
 import { RecurringScreen } from '../screens/RecurringScreen';
-import { SubscriptionsScreen } from '../screens/SubscriptionsScreen';
 import { AnalyticsScreen } from '../screens/AnalyticsScreen';
-import { PlannedBudgetScreen } from '../screens/PlannedBudgetScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -46,32 +43,31 @@ const AppTheme = {
     card: Colors.bgCard,
     text: Colors.textPrimary,
     border: Colors.border,
-    notification: Colors.negative,
+    notification: Colors.rust,
   },
 };
 
-// ── Home stack (Dashboard → Transactions → Calendar → Timeline → Analytics)
+// Home stack — Dashboard → Transactions / Analytics / Edit
 const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="HomeMain" component={DashboardScreen} />
     <Stack.Screen name="Transactions" component={TransactionsScreen} />
     <Stack.Screen name="EditTransaction" component={EditTransactionScreen} options={{ presentation: 'modal' }} />
-    <Stack.Screen name="Calendar" component={CalendarScreen} />
-    <Stack.Screen name="Timeline" component={TimelineScreen} />
     <Stack.Screen name="Analytics" component={AnalyticsScreen} />
   </Stack.Navigator>
 );
 
-// ── Accounts stack
+// Accounts stack — Accounts → Movimientos / Transferencias / Merchants
 const AccountsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="AccountsMain" component={AccountsScreen} />
+    <Stack.Screen name="Movements" component={TransactionsScreen} />
     <Stack.Screen name="TransferMoney" component={TransferScreen} />
     <Stack.Screen name="Merchants" component={MerchantsScreen} />
   </Stack.Navigator>
 );
 
-// ── Plan stack
+// Plan stack — Plan (budgets, goals, recurring, projection) + manage screens
 const PlanStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="PlanMain" component={PlanScreen} />
@@ -79,12 +75,10 @@ const PlanStack = () => (
     <Stack.Screen name="BudgetsManage" component={BudgetsScreen} />
     <Stack.Screen name="GoalsManage" component={GoalsScreen} />
     <Stack.Screen name="RecurringManage" component={RecurringScreen} />
-    <Stack.Screen name="Subscriptions" component={SubscriptionsScreen} />
-    <Stack.Screen name="IncomePlanner" component={PlannedBudgetScreen} />
   </Stack.Navigator>
 );
 
-// ── You stack
+// You stack — profile / settings / achievements
 const YouStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="YouMain" component={YouScreen} />
@@ -93,58 +87,36 @@ const YouStack = () => (
   </Stack.Navigator>
 );
 
-// ── Center FAB
-const CenterTabButton: React.FC<any> = () => (
-  <TouchableOpacity
-    onPress={() => navigationRef.current?.navigate('AddTransaction' as never)}
-    activeOpacity={0.85}
-    style={ts.centerBtnWrapper}
-    accessibilityLabel="Add transaction"
-    accessibilityRole="button"
-  >
-    <View style={ts.centerBtn}>
-      <Ionicons name="add" size={26} color={Colors.onAccent} />
-    </View>
-  </TouchableOpacity>
-);
-
-const EmptyScreen = () => null;
-
-// ── Tab icon component
 const TabIcon: React.FC<{ ionIcon: string; focused: boolean; color: string }> = ({ ionIcon, focused, color }) => (
   <View style={ts.iconWrap}>
     <Ionicons name={ionIcon as any} size={22} color={color} />
-    {focused && <View style={ts.dot} />}
+    <View style={[ts.dot, { opacity: focused ? 1 : 0 }]} />
   </View>
 );
 
-// ── Main tab navigator
+// Editorial tab bar — 4 tabs, FAB sits above as a separate root-level layer.
 const MainTabs = () => (
   <Tab.Navigator
     screenOptions={{
       headerShown: false,
       tabBarStyle: {
-        backgroundColor: Colors.bgCard,
+        backgroundColor: 'rgba(14,15,13,0.96)',
         borderTopColor: Colors.border,
         borderTopWidth: 1,
-        height: Platform.OS === 'android' ? 68 : 80,
-        paddingBottom: Platform.OS === 'android' ? 8 : 20,
-        paddingTop: 8,
+        height: Platform.OS === 'android' ? 68 : 86,
+        paddingBottom: Platform.OS === 'android' ? 10 : 22,
+        paddingTop: 10,
       },
       tabBarActiveTintColor: Colors.textPrimary,
       tabBarInactiveTintColor: Colors.textTertiary,
-      tabBarLabelStyle: {
-        fontSize: 10,
-        fontWeight: '500',
-        marginTop: 0,
-      },
+      tabBarLabelStyle: { fontSize: 10, fontWeight: '500', letterSpacing: 0.4, marginTop: 2 },
     }}
   >
     <Tab.Screen
       name="Home"
       component={HomeStack}
       options={{
-        tabBarLabel: 'Home',
+        tabBarLabel: 'Inicio',
         tabBarIcon: ({ focused, color }) => <TabIcon ionIcon={focused ? 'home' : 'home-outline'} focused={focused} color={color} />,
       }}
     />
@@ -152,17 +124,8 @@ const MainTabs = () => (
       name="Accounts"
       component={AccountsStack}
       options={{
-        tabBarLabel: 'Accounts',
+        tabBarLabel: 'Cuentas',
         tabBarIcon: ({ focused, color }) => <TabIcon ionIcon={focused ? 'wallet' : 'wallet-outline'} focused={focused} color={color} />,
-      }}
-    />
-    <Tab.Screen
-      name="AddCenter"
-      component={EmptyScreen}
-      options={{
-        tabBarLabel: '',
-        tabBarButton: (props) => <CenterTabButton {...props} />,
-        tabBarIcon: () => null,
       }}
     />
     <Tab.Screen
@@ -177,17 +140,24 @@ const MainTabs = () => (
       name="You"
       component={YouStack}
       options={{
-        tabBarLabel: 'You',
+        tabBarLabel: 'Tú',
         tabBarIcon: ({ focused, color }) => <TabIcon ionIcon={focused ? 'person' : 'person-outline'} focused={focused} color={color} />,
       }}
     />
   </Tab.Navigator>
 );
 
-// ── Root navigator
+// Root navigator — main tabs + the AddTransaction modal + a global FAB layer.
+const TabsWithFAB = () => (
+  <View style={{ flex: 1 }}>
+    <MainTabs />
+    <FAB onPress={() => navigationRef.current?.navigate('AddTransaction' as never)} />
+  </View>
+);
+
 const RootNavigator = () => (
   <Root.Navigator screenOptions={{ headerShown: false }}>
-    <Root.Screen name="MainTabs" component={MainTabs} />
+    <Root.Screen name="MainTabs" component={TabsWithFAB} />
     <Root.Screen
       name="AddTransaction"
       component={AddTransactionScreen}
@@ -196,7 +166,6 @@ const RootNavigator = () => (
   </Root.Navigator>
 );
 
-// ── Export
 export const AppNavigator: React.FC = () => (
   <NavigationContainer ref={navigationRef} theme={AppTheme}>
     <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
@@ -207,33 +176,6 @@ export const AppNavigator: React.FC = () => (
 );
 
 const ts = StyleSheet.create({
-  iconWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.accent,
-  },
-  centerBtnWrapper: {
-    top: -18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  centerBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: Colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.30,
-    shadowRadius: 12,
-    elevation: 10,
-  },
+  iconWrap: { alignItems: 'center', justifyContent: 'center', gap: 3 },
+  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.accent },
 });

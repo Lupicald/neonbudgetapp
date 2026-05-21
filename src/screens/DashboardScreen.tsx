@@ -9,17 +9,18 @@ import {
   Card, HeroCard, Amount, Ring, Progress, AreaChart,
   SectionHeader, CatAvatar,
 } from '../components/SumariPrimitives';
-import { Colors, Spacing, BorderRadius } from '../theme';
+import { Colors, Spacing, BorderRadius, FontFamily } from '../theme';
 import { formatCurrency, getMonthKey } from '../utils';
 import { getTotalBalance } from '../database/accountService';
 import { getMonthlyTotal, getTransactions } from '../database/transactionService';
 import { getSetting } from '../database/settingsService';
 import { getNextEvent, getProjectionChartData } from '../services/projectionEngine';
+import { generateInsights } from '../services/insightsGenerator';
 import { calculateHealthScore } from '../services/healthScore';
 import { getStreak, getLevelData, LevelData } from '../services/gamification';
 import { getBudgets } from '../database/budgetService';
 import { getGoals } from '../database/goalService';
-import { Budget, Goal, Transaction, FinancialHealthScore, ProjectedEvent } from '../types';
+import { Budget, Goal, Transaction, FinancialHealthScore, ProjectedEvent, Insight } from '../types';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -37,12 +38,14 @@ export const DashboardScreen: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [nextExpense, setNextExpense] = useState<ProjectedEvent | null>(null);
   const [balanceSeries, setBalanceSeries] = useState<number[]>([]);
+  const [projectedBalance, setProjectedBalance] = useState<number | null>(null);
+  const [topInsight, setTopInsight] = useState<Insight | null>(null);
   const [userName, setUserName] = useState('Sumari');
 
   const loadData = useCallback(async () => {
     try {
       const month = getMonthKey();
-      const [totalBal, exp, inc, hs, st, lvl, bdgs, gls, txs, ne, proj, name] = await Promise.all([
+      const [totalBal, exp, inc, hs, st, lvl, bdgs, gls, txs, ne, proj, name, insights] = await Promise.all([
         getTotalBalance(),
         getMonthlyTotal(month, 'expense'),
         getMonthlyTotal(month, 'income'),
@@ -55,6 +58,7 @@ export const DashboardScreen: React.FC = () => {
         getNextEvent('expense'),
         getProjectionChartData(30),
         getSetting('name'),
+        generateInsights(),
       ]);
       setBalance(totalBal);
       setMonthlyExpense(exp);
@@ -72,9 +76,15 @@ export const DashboardScreen: React.FC = () => {
         const series = Array.from({ length: Math.min(12, proj.data.length) }, (_, i) =>
           proj.data[Math.min(i * step, proj.data.length - 1)] || totalBal);
         setBalanceSeries(series);
+        setProjectedBalance(proj.data[proj.data.length - 1] ?? totalBal);
       } else {
         setBalanceSeries([totalBal, totalBal]);
+        setProjectedBalance(totalBal);
       }
+      // Pick a warning-style insight first, else any insight, for the editorial closer.
+      const ranked = [...insights].sort((a, b) =>
+        (a.type === 'warning' ? -1 : 0) - (b.type === 'warning' ? -1 : 0));
+      setTopInsight(ranked[0] ?? null);
     } catch (err) {
       console.log('HomeScreen error:', err);
     }
@@ -251,8 +261,8 @@ export const DashboardScreen: React.FC = () => {
         {/* Balance trend */}
         {balanceSeries.length >= 2 && (
           <>
-            <SectionHeader label="Balance trend" action="Timeline"
-              onAction={() => navigation.navigate('Timeline')}
+            <SectionHeader label="Balance trend" action="Analytics"
+              onAction={() => navigation.navigate('Analytics')}
               style={{ paddingTop: Spacing.xl, paddingBottom: Spacing.sm }} />
             <View style={s.padH}>
               <Card style={{ paddingHorizontal: Spacing.md, paddingVertical: Spacing.lg }}>
@@ -336,7 +346,22 @@ export const DashboardScreen: React.FC = () => {
           </>
         )}
 
-        <View style={{ height: 40 }} />
+        {/* Editorial closer — serif roman ~"Resumen del editor" */}
+        {(projectedBalance != null || topInsight) && (
+          <View style={s.editorialCloser}>
+            <Text style={s.editorialBody}>
+              <Text style={s.editorialQuote}>“</Text>
+              A este ritmo cerrarás el mes con{' '}
+              <Text style={s.editorialAmount}>${(projectedBalance ?? balance).toFixed(0)}</Text>
+              {' '}en patrimonio.
+              {topInsight ? `  ${topInsight.description}` : '  Mantén el gasto bajo control esta semana.'}
+              <Text style={s.editorialQuote}>”</Text>
+            </Text>
+            <Text style={s.editorialSig}>— Resumen del editor</Text>
+          </View>
+        )}
+
+        <View style={{ height: 120 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -404,4 +429,30 @@ const s = StyleSheet.create({
   txInfo: { flex: 1, minWidth: 0 },
   txMerchant: { fontSize: 14, fontWeight: '500', color: Colors.textPrimary },
   txMeta: { fontSize: 11, color: Colors.textTertiary, marginTop: 1 },
+  editorialCloser: {
+    marginTop: 28,
+    marginHorizontal: Spacing.xl,
+    paddingVertical: 20,
+    borderTopWidth: 1, borderBottomWidth: 1,
+    borderColor: Colors.border,
+  },
+  editorialBody: {
+    fontFamily: FontFamily.serif,
+    fontSize: 15, lineHeight: 22,
+    color: Colors.textSecondary,
+  },
+  editorialQuote: {
+    fontFamily: FontFamily.display, fontStyle: 'italic',
+    color: Colors.textTertiary, fontSize: 18,
+  },
+  editorialAmount: {
+    fontFamily: undefined, fontStyle: 'normal',
+    color: Colors.textPrimary, fontWeight: '600',
+    fontVariant: ['tabular-nums'] as any,
+  },
+  editorialSig: {
+    fontSize: 10, color: Colors.textTertiary,
+    letterSpacing: 1.6, textTransform: 'uppercase',
+    marginTop: 14,
+  },
 });
