@@ -12,18 +12,18 @@ export const calculateHealthScore = async (): Promise<FinancialHealthScore> => {
 
 export const getScoreFromBalance = (balance: number, debtLimit: number): FinancialHealthScore => {
     if (balance >= 0) {
-        return { score: 100, label: 'Excellent', color: Colors.cyberGreen };
+        return { score: 100, label: 'Excellent', color: Colors.accent };
     }
 
     if (balance <= debtLimit) {
-        return { score: 0, label: 'Critical', color: Colors.neonPink };
+        return { score: 0, label: 'Critical', color: Colors.rust };
     }
 
     const score = Math.round(((balance - debtLimit) / (0 - debtLimit)) * 100);
 
-    if (score >= 80) return { score, label: 'Great', color: Colors.cyberGreen };
-    if (score >= 60) return { score, label: 'Good', color: Colors.electricBlue };
-    if (score >= 40) return { score, label: 'Fair', color: Colors.neonYellow };
-    if (score >= 20) return { score, label: 'Warning', color: Colors.neonOrange };
-    return { score, label: 'Danger', color: Colors.neonPink };
+    if (score >= 80) return { score, label: 'Great', color: Colors.accent };
+    if (score >= 60) return { score, label: 'Good', color: Colors.info };
+    if (score >= 40) return { score, label: 'Fair', color: Colors.amber };
+    if (score >= 20) return { score, label: 'Warning', color: Colors.amber };
+    return { score, label: 'Danger', color: Colors.rust };
 };

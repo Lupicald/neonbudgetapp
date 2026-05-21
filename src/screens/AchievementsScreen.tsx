@@ -36,13 +36,13 @@ export const AchievementsScreen: React.FC = () => {
                     return (
                         <GlassCard
                             style={[styles.badge, !unlocked && styles.badgeLocked]}
-                            glowColor={unlocked ? Colors.neonYellow : undefined}
+                            glowColor={unlocked ? Colors.amber : undefined}
                         >
-                            <View style={[styles.iconCircle, { backgroundColor: unlocked ? `${Colors.neonYellow}20` : Colors.surface }]}>
+                            <View style={[styles.iconCircle, { backgroundColor: unlocked ? `${Colors.amber}20` : Colors.surface }]}>
                                 <Ionicons
                                     name={item.icon as any}
                                     size={28}
-                                    color={unlocked ? Colors.neonYellow : Colors.textMuted}
+                                    color={unlocked ? Colors.amber : Colors.textMuted}
                                 />
                             </View>
                             <NeonText variant="body" color={unlocked ? Colors.textPrimary : Colors.textMuted} align="center" numberOfLines={1}>
@@ -53,8 +53,8 @@ export const AchievementsScreen: React.FC = () => {
                             </NeonText>
                             {unlocked && (
                                 <View style={styles.unlockedBadge}>
-                                    <Ionicons name="checkmark-circle" size={14} color={Colors.cyberGreen} />
-                                    <NeonText variant="caption" color={Colors.cyberGreen}>Unlocked</NeonText>
+                                    <Ionicons name="checkmark-circle" size={14} color={Colors.accent} />
+                                    <NeonText variant="caption" color={Colors.accent}>Unlocked</NeonText>
                                 </View>
                             )}
                         </GlassCard>

@@ -59,7 +59,7 @@ export const GoalsScreen: React.FC = () => {
             <View style={styles.header}>
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Savings Goals</NeonText>
                 <TouchableOpacity onPress={() => setShowForm(!showForm)} style={{ paddingTop: Spacing.xxl }}>
-                    <Ionicons name={showForm ? 'close' : 'add-circle'} size={28} color={Colors.neonPurple} />
+                    <Ionicons name={showForm ? 'close' : 'add-circle'} size={28} color={Colors.info} />
                 </TouchableOpacity>
             </View>
 
@@ -80,9 +80,9 @@ export const GoalsScreen: React.FC = () => {
                 renderItem={({ item }: any) => {
                     if (item.isForm) {
                         return (
-                            <GlassCard style={styles.form} glowColor={Colors.neonPurple}>
-                                <GlowInput label="Goal Name" placeholder="e.g. New Laptop" value={name} onChangeText={setName} glowColor={Colors.neonPurple} />
-                                <GlowInput label="Target Amount" placeholder="0.00" value={target} onChangeText={setTarget} keyboardType="decimal-pad" glowColor={Colors.neonPurple} />
+                            <GlassCard style={styles.form} glowColor={Colors.info}>
+                                <GlowInput label="Goal Name" placeholder="e.g. New Laptop" value={name} onChangeText={setName} glowColor={Colors.info} />
+                                <GlowInput label="Target Amount" placeholder="0.00" value={target} onChangeText={setTarget} keyboardType="decimal-pad" glowColor={Colors.info} />
 
                                 <NeonText variant="label" style={styles.label}>ICON</NeonText>
                                 <View style={styles.iconRow}>
@@ -115,7 +115,7 @@ export const GoalsScreen: React.FC = () => {
 
                     return (
                         <TouchableOpacity onLongPress={() => handleDelete(goal)}>
-                            <GlassCard style={styles.goalCard} glowColor={isComplete ? Colors.cyberGreen : goal.color}>
+                            <GlassCard style={styles.goalCard} glowColor={isComplete ? Colors.accent : goal.color}>
                                 <View style={styles.goalHeader}>
                                     <View style={[styles.goalIcon, { backgroundColor: `${goal.color}20` }]}>
                                         <Ionicons name={goal.icon as any} size={24} color={goal.color} />
@@ -127,7 +127,7 @@ export const GoalsScreen: React.FC = () => {
                                         </NeonText>
                                     </View>
                                     {isComplete ? (
-                                        <Ionicons name="checkmark-circle" size={28} color={Colors.cyberGreen} />
+                                        <Ionicons name="checkmark-circle" size={28} color={Colors.accent} />
                                     ) : (
                                         <TouchableOpacity onPress={() => setAddAmountId(addAmountId === goal.id ? null : goal.id)}>
                                             <Ionicons name="add-circle" size={28} color={goal.color} />

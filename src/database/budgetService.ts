@@ -11,7 +11,7 @@ export const getBudgets = async (month?: string): Promise<Budget[]> => {
         `SELECT b.*,
             COALESCE(c.name, 'All Expenses') as category_name,
             COALESCE(c.icon, 'apps-outline') as category_icon,
-            COALESCE(c.color, '#1FCC58') as category_color,
+            COALESCE(c.color, '#4A8F5C') as category_color,
             COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE (b.category_id = -1 OR t.category_id = b.category_id) AND t.type = 'expense' AND t.date LIKE ?), 0) as spent
          FROM budgets b
          LEFT JOIN categories c ON b.category_id = c.id

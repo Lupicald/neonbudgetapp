@@ -98,21 +98,21 @@ export const EditTransactionScreen: React.FC = () => {
                     </TouchableOpacity>
                     <NeonText variant="title">Edit Transaction</NeonText>
                     <TouchableOpacity onPress={handleDelete}>
-                        <Ionicons name="trash-outline" size={24} color={Colors.neonPink} />
+                        <Ionicons name="trash-outline" size={24} color={Colors.rust} />
                     </TouchableOpacity>
                 </View>
 
                 {/* Type Toggle */}
                 <View style={styles.typeRow}>
                     <TouchableOpacity
-                        style={[styles.typeBtn, type === 'expense' && { backgroundColor: `${Colors.neonPink}20`, borderColor: Colors.neonPink }]}
+                        style={[styles.typeBtn, type === 'expense' && { backgroundColor: `${Colors.rust}20`, borderColor: Colors.rust }]}
                         onPress={() => setType('expense')}>
-                        <NeonText variant="body" color={type === 'expense' ? Colors.neonPink : Colors.textTertiary}>Expense</NeonText>
+                        <NeonText variant="body" color={type === 'expense' ? Colors.rust : Colors.textTertiary}>Expense</NeonText>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={[styles.typeBtn, type === 'income' && { backgroundColor: `${Colors.cyberGreen}20`, borderColor: Colors.cyberGreen }]}
+                        style={[styles.typeBtn, type === 'income' && { backgroundColor: `${Colors.accent}20`, borderColor: Colors.accent }]}
                         onPress={() => setType('income')}>
-                        <NeonText variant="body" color={type === 'income' ? Colors.cyberGreen : Colors.textTertiary}>Income</NeonText>
+                        <NeonText variant="body" color={type === 'income' ? Colors.accent : Colors.textTertiary}>Income</NeonText>
                     </TouchableOpacity>
                 </View>
 

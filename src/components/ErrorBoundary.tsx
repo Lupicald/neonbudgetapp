@@ -37,8 +37,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
         return (
             <View style={styles.container}>
-                <Ionicons name="warning-outline" size={52} color={Colors.neonPink} />
-                <NeonText variant="subtitle" color={Colors.neonPink} style={styles.title}>
+                <Ionicons name="warning-outline" size={52} color={Colors.rust} />
+                <NeonText variant="subtitle" color={Colors.rust} style={styles.title}>
                     {this.props.fallbackLabel || 'Something went wrong'}
                 </NeonText>
                 <NeonText variant="caption" color={Colors.textMuted} align="center" style={styles.msg}>

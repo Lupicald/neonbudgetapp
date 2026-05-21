@@ -119,7 +119,7 @@ export const SettingsScreen: React.FC = () => {
     const navItem = (label: string, icon: string, onPress: () => void) => (
         <TouchableOpacity key={label} style={styles.navItem} onPress={onPress}>
             <View style={styles.navLeft}>
-                <Ionicons name={icon as any} size={20} color={Colors.electricBlue} />
+                <Ionicons name={icon as any} size={20} color={Colors.info} />
                 <NeonText variant="body">{label}</NeonText>
             </View>
             <Ionicons name="chevron-forward-outline" size={18} color={Colors.textTertiary} />
@@ -133,7 +133,7 @@ export const SettingsScreen: React.FC = () => {
 
                 {/* Data Import / Export */}
                 <NeonText variant="subtitle" style={styles.sectionTitle}>Data</NeonText>
-                <GlassCard style={styles.section} glowColor={Colors.electricBlue}>
+                <GlassCard style={styles.section} glowColor={Colors.info}>
                     <NeonButton title={importing ? 'Importing...' : '📥  Import CSV'} onPress={handleImport} variant="secondary" fullWidth loading={importing} />
                     <View style={{ height: Spacing.sm }} />
                     <NeonButton title={exporting ? 'Exporting...' : '📤  Export CSV'} onPress={handleExport} variant="secondary" fullWidth loading={exporting} />
@@ -149,12 +149,12 @@ export const SettingsScreen: React.FC = () => {
                         <TouchableOpacity
                             style={[styles.currencyChip, language === 'en' && styles.currencyActive]}
                             onPress={() => setLanguage('en')}>
-                            <NeonText variant="caption" color={language === 'en' ? Colors.electricBlue : Colors.textTertiary}>{t('settings.english')}</NeonText>
+                            <NeonText variant="caption" color={language === 'en' ? Colors.info : Colors.textTertiary}>{t('settings.english')}</NeonText>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.currencyChip, language === 'es' && styles.currencyActive]}
                             onPress={() => setLanguage('es')}>
-                            <NeonText variant="caption" color={language === 'es' ? Colors.electricBlue : Colors.textTertiary}>{t('settings.spanish')}</NeonText>
+                            <NeonText variant="caption" color={language === 'es' ? Colors.info : Colors.textTertiary}>{t('settings.spanish')}</NeonText>
                         </TouchableOpacity>
                     </View>
                 </GlassCard>
@@ -167,7 +167,7 @@ export const SettingsScreen: React.FC = () => {
                             <TouchableOpacity key={c}
                                 style={[styles.currencyChip, currency === c && styles.currencyActive]}
                                 onPress={() => saveCurrency(c)}>
-                                <NeonText variant="caption" color={currency === c ? Colors.electricBlue : Colors.textTertiary}>{c}</NeonText>
+                                <NeonText variant="caption" color={currency === c ? Colors.info : Colors.textTertiary}>{c}</NeonText>
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -193,8 +193,8 @@ export const SettingsScreen: React.FC = () => {
 
                     <TouchableOpacity style={[styles.navItem, { borderBottomWidth: 0 }]} onPress={handleReset}>
                         <View style={styles.navLeft}>
-                            <Ionicons name="trash-outline" size={20} color={Colors.neonPink} />
-                            <NeonText variant="body" color={Colors.neonPink}>Reset All Data</NeonText>
+                            <Ionicons name="trash-outline" size={20} color={Colors.rust} />
+                            <NeonText variant="body" color={Colors.rust}>Reset All Data</NeonText>
                         </View>
                         <Ionicons name="chevron-forward-outline" size={18} color={Colors.textTertiary} />
                     </TouchableOpacity>
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     section: { marginBottom: Spacing.md },
     currencyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
     currencyChip: { paddingVertical: Spacing.xs, paddingHorizontal: Spacing.md, borderRadius: BorderRadius.sm, borderWidth: 1, borderColor: Colors.border },
-    currencyActive: { backgroundColor: `${Colors.electricBlue}20`, borderColor: Colors.electricBlue },
+    currencyActive: { backgroundColor: `${Colors.info}20`, borderColor: Colors.info },
     navSection: { padding: 0 },
     navItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, borderBottomWidth: 1, borderBottomColor: Colors.border },
     navLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },

@@ -161,14 +161,14 @@ export const YouScreen: React.FC = () => {
 
             {/* Streak + Score */}
             <View style={s.metaRow}>
-              <View style={[s.metaBadge, { backgroundColor: 'rgba(255,138,61,0.12)' }]}>
-                <Ionicons name="flame" size={20} color="#FF8A3D" />
+              <View style={[s.metaBadge, { backgroundColor: Colors.amberSoft }]}>
+                <Ionicons name="flame" size={20} color={Colors.amber} />
                 <View>
-                  <Text style={[s.metaVal, { color: '#FF8A3D' }]}>{streak} days</Text>
+                  <Text style={[s.metaVal, { color: Colors.amber }]}>{streak} days</Text>
                   <Text style={s.metaLabel}>Streak</Text>
                 </View>
               </View>
-              <View style={[s.metaBadge, { backgroundColor: 'rgba(31,204,88,0.12)' }]}>
+              <View style={[s.metaBadge, { backgroundColor: Colors.accentSoft }]}>
                 <Ionicons name="shield-outline" size={20} color={Colors.accent} />
                 <View>
                   <Text style={[s.metaVal, { color: Colors.accent }]}>{healthScore.score}</Text>
@@ -283,7 +283,7 @@ const s = StyleSheet.create({
   // Profile hero
   avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: Colors.accent,
     alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-    borderWidth: 3, borderColor: 'rgba(31,204,88,0.3)' },
+    borderWidth: 3, borderColor: Colors.accentGlow },
   avatarText: { fontSize: 28, fontWeight: '700', color: Colors.onAccent },
   profileName: { fontFamily: FontFamily.display, fontSize: 28, color: Colors.onHero, letterSpacing: -0.5 },
   profileRole: { fontSize: 12, color: 'rgba(244,245,240,0.5)', marginBottom: Spacing.lg },

@@ -95,12 +95,12 @@ export const CategoriesScreen: React.FC = () => {
             <View style={styles.header}>
                 <NeonText variant="title" style={{ paddingTop: Spacing.xxl }}>Categories</NeonText>
                 <TouchableOpacity onPress={() => { resetForm(); setShowForm(!showForm); }} style={{ paddingTop: Spacing.xxl }}>
-                    <Ionicons name={showForm ? 'close' : 'add-circle'} size={28} color={Colors.electricBlue} />
+                    <Ionicons name={showForm ? 'close' : 'add-circle'} size={28} color={Colors.info} />
                 </TouchableOpacity>
             </View>
 
             {showForm && (
-                <GlassCard style={styles.form} glowColor={Colors.electricBlue}>
+                <GlassCard style={styles.form} glowColor={Colors.info}>
                     <GlowInput label="Category Name" placeholder="e.g. Gym" value={name} onChangeText={setName} containerStyle={{ marginBottom: Spacing.md }} />
 
                     <NeonText variant="label" style={styles.label}>ICON</NeonText>
@@ -142,8 +142,8 @@ export const CategoriesScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 ListFooterComponent={
                     <TouchableOpacity style={styles.addFooterBtn} onPress={() => { resetForm(); setShowForm(true); }}>
-                        <Ionicons name="add-circle-outline" size={20} color={Colors.electricBlue} />
-                        <NeonText variant="body" color={Colors.electricBlue}>Add category</NeonText>
+                        <Ionicons name="add-circle-outline" size={20} color={Colors.info} />
+                        <NeonText variant="body" color={Colors.info}>Add category</NeonText>
                     </TouchableOpacity>
                 }
                 renderItem={({ item }) => (
@@ -162,7 +162,7 @@ export const CategoriesScreen: React.FC = () => {
                                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                 style={styles.actionBtn}
                             >
-                                <Ionicons name="pencil-outline" size={18} color={Colors.electricBlue} />
+                                <Ionicons name="pencil-outline" size={18} color={Colors.info} />
                             </TouchableOpacity>
                             {item.is_default ? (
                                 <View style={styles.actionBtn}>
@@ -174,7 +174,7 @@ export const CategoriesScreen: React.FC = () => {
                                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                     style={styles.actionBtn}
                                 >
-                                    <Ionicons name="trash-outline" size={18} color={Colors.neonPink} />
+                                    <Ionicons name="trash-outline" size={18} color={Colors.rust} />
                                 </TouchableOpacity>
                             )}
                         </GlassCard>
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     colorBtn: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: 'transparent' },
     colorBtnSelected: { borderColor: Colors.textPrimary, transform: [{ scale: 1.2 }] },
     list: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
-    addFooterBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: 12, borderWidth: 1.5, borderStyle: 'dashed', borderColor: Colors.electricBlue + '60', marginBottom: Spacing.lg },
+    addFooterBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: 12, borderWidth: 1.5, borderStyle: 'dashed', borderColor: Colors.info + '60', marginBottom: Spacing.lg },
     catCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.sm, paddingVertical: Spacing.md },
     actionBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
 });

@@ -147,7 +147,7 @@ export const DashboardScreen: React.FC = () => {
           <HeroCard style={{ position: 'relative', overflow: 'hidden' }}>
             {streak > 0 && (
               <View style={s.streakBadge}>
-                <Ionicons name="flame" size={11} color="#FF8A3D" />
+                <Ionicons name="flame" size={11} color={Colors.amber} />
                 <Text style={s.streakText}>{streak}-day streak</Text>
               </View>
             )}
@@ -157,7 +157,7 @@ export const DashboardScreen: React.FC = () => {
             </View>
             <View style={s.heroPills}>
               <View style={s.heroPill}>
-                <View style={[s.heroPillIcon, { backgroundColor: 'rgba(31,204,88,0.18)' }]}>
+                <View style={[s.heroPillIcon, { backgroundColor: Colors.accentSoft }]}>
                   <Ionicons name="arrow-down" size={12} color={Colors.accent} />
                 </View>
                 <View>
@@ -166,8 +166,8 @@ export const DashboardScreen: React.FC = () => {
                 </View>
               </View>
               <View style={s.heroPill}>
-                <View style={[s.heroPillIcon, { backgroundColor: 'rgba(255,90,107,0.18)' }]}>
-                  <Ionicons name="arrow-up" size={12} color={Colors.negative} />
+                <View style={[s.heroPillIcon, { backgroundColor: Colors.rustSoft }]}>
+                  <Ionicons name="arrow-up" size={12} color={Colors.rust} />
                 </View>
                 <View>
                   <Text style={s.heroPillLabel}>Spent</Text>
@@ -219,9 +219,9 @@ export const DashboardScreen: React.FC = () => {
                 <Text style={[s.miniPillText, { color: Colors.accent }]}>Savings {Math.max(0, savingsRate)}%</Text>
               </View>
               {streak > 0 && (
-                <View style={[s.miniPill, { backgroundColor: 'rgba(255,138,61,0.15)' }]}>
-                  <Ionicons name="flame" size={10} color={Colors.orange} />
-                  <Text style={[s.miniPillText, { color: Colors.orange }]}>{streak} day streak</Text>
+                <View style={[s.miniPill, { backgroundColor: Colors.amberSoft }]}>
+                  <Ionicons name="flame" size={10} color={Colors.amber} />
+                  <Text style={[s.miniPillText, { color: Colors.amber }]}>{streak} day streak</Text>
                 </View>
               )}
             </View>
@@ -388,8 +388,8 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center' },
   streakBadge: { position: 'absolute', top: Spacing.lg, right: Spacing.lg,
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(255,138,61,0.15)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  streakText: { fontSize: 11, fontWeight: '600', color: '#FF8A3D' },
+    backgroundColor: Colors.amberSoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  streakText: { fontSize: 11, fontWeight: '600', color: Colors.amber },
   heroLabel: { fontSize: 12, color: 'rgba(244,245,240,0.55)', textTransform: 'uppercase',
     letterSpacing: 1.6, marginBottom: 10 },
   heroPills: { flexDirection: 'row', gap: Spacing.sm },

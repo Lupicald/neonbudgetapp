@@ -23,7 +23,7 @@ export const BudgetsScreen: React.FC = () => {
         const [b, c] = await Promise.all([getBudgets(), getCategories()]);
         setBudgets(b);
         // Inject "All Expenses" category at the beginning
-        const globalCat: Category = { id: -1, name: 'All Expenses', icon: 'apps-outline', color: Colors.electricBlue, is_default: 1 };
+        const globalCat: Category = { id: -1, name: 'All Expenses', icon: 'apps-outline', color: Colors.info, is_default: 1 };
         setCategories([globalCat, ...c]);
     }, []);
 
@@ -87,7 +87,7 @@ export const BudgetsScreen: React.FC = () => {
                         setShowForm(true);
                     }
                 }} style={{ paddingTop: Spacing.xxl }}>
-                    <Ionicons name={showForm ? 'close' : 'add-circle'} size={28} color={Colors.electricBlue} />
+                    <Ionicons name={showForm ? 'close' : 'add-circle'} size={28} color={Colors.info} />
                 </TouchableOpacity>
             </View>
 
@@ -107,7 +107,7 @@ export const BudgetsScreen: React.FC = () => {
                 renderItem={({ item }: any) => {
                     if (item.isForm && showForm) {
                         return (
-                            <GlassCard style={styles.form} glowColor={Colors.electricBlue}>
+                            <GlassCard style={styles.form} glowColor={Colors.info}>
                                 {/* Global toggle */}
                                 {!editingId && (
                                     <View style={styles.globalRow}>
@@ -115,23 +115,23 @@ export const BudgetsScreen: React.FC = () => {
                                             <NeonText variant="body">Global budget</NeonText>
                                             <NeonText variant="caption" color={Colors.textMuted}>Applies to all months, not just {getMonthKey()}</NeonText>
                                         </View>
-                                        <Switch value={isGlobal} onValueChange={v => { setIsGlobal(v); if (v) setSelectedCat(categories[0]); }} thumbColor={isGlobal ? Colors.electricBlue : Colors.textMuted} trackColor={{ false: Colors.border, true: Colors.electricBlue + '60' }} />
+                                        <Switch value={isGlobal} onValueChange={v => { setIsGlobal(v); if (v) setSelectedCat(categories[0]); }} thumbColor={isGlobal ? Colors.info : Colors.textMuted} trackColor={{ false: Colors.border, true: Colors.info + '60' }} />
                                     </View>
                                 )}
                                 <NeonText variant="label" style={styles.label}>CATEGORY</NeonText>
                                 {/* All Expenses shortcut */}
                                 {!editingId && (
                                     <TouchableOpacity
-                                        style={[styles.allExpensesBtn, selectedCat?.id === -1 && { backgroundColor: `${Colors.electricBlue}20`, borderColor: Colors.electricBlue }]}
-                                        onPress={() => setSelectedCat(categories.find(c => c.id === -1) || { id: -1, name: 'All Expenses', icon: 'apps-outline', color: Colors.electricBlue, is_default: 1 })}
+                                        style={[styles.allExpensesBtn, selectedCat?.id === -1 && { backgroundColor: `${Colors.info}20`, borderColor: Colors.info }]}
+                                        onPress={() => setSelectedCat(categories.find(c => c.id === -1) || { id: -1, name: 'All Expenses', icon: 'apps-outline', color: Colors.info, is_default: 1 })}
                                         disabled={!!editingId}
                                     >
-                                        <Ionicons name="apps-outline" size={18} color={selectedCat?.id === -1 ? Colors.electricBlue : Colors.textSecondary} />
+                                        <Ionicons name="apps-outline" size={18} color={selectedCat?.id === -1 ? Colors.info : Colors.textSecondary} />
                                         <View style={{ flex: 1 }}>
-                                            <NeonText variant="body" color={selectedCat?.id === -1 ? Colors.electricBlue : Colors.textPrimary}>All Expenses (Global category)</NeonText>
+                                            <NeonText variant="body" color={selectedCat?.id === -1 ? Colors.info : Colors.textPrimary}>All Expenses (Global category)</NeonText>
                                             <NeonText variant="caption" color={Colors.textMuted}>Tracks total spending across all categories</NeonText>
                                         </View>
-                                        {selectedCat?.id === -1 && <Ionicons name="checkmark-circle" size={20} color={Colors.electricBlue} />}
+                                        {selectedCat?.id === -1 && <Ionicons name="checkmark-circle" size={20} color={Colors.info} />}
                                     </TouchableOpacity>
                                 )}
                                 <View style={styles.catGrid}>
@@ -160,17 +160,17 @@ export const BudgetsScreen: React.FC = () => {
 
                     return (
                         <View key={b.id}>
-                            <GlassCard style={styles.budgetCard} glowColor={isDanger ? Colors.neonPink : isWarning ? Colors.neonYellow : undefined}>
+                            <GlassCard style={styles.budgetCard} glowColor={isDanger ? Colors.rust : isWarning ? Colors.amber : undefined}>
                                 <View style={styles.budgetHeader}>
                                     <View style={styles.budgetInfo}>
-                                        <CategoryIcon icon={b.category_icon || 'ellipse'} color={b.category_color || Colors.electricBlue} size={36} />
+                                        <CategoryIcon icon={b.category_icon || 'ellipse'} color={b.category_color || Colors.info} size={36} />
                                         <View>
                                             <NeonText variant="body">{b.category_name}</NeonText>
                                             <NeonText variant="caption" color={Colors.textTertiary}>{getMonthKey()}</NeonText>
                                         </View>
                                     </View>
                                     <View style={{ alignItems: 'flex-end' }}>
-                                        <NeonText variant="subtitle" color={isDanger ? Colors.neonPink : isWarning ? Colors.neonYellow : Colors.textPrimary}>
+                                        <NeonText variant="subtitle" color={isDanger ? Colors.rust : isWarning ? Colors.amber : Colors.textPrimary}>
                                             {formatCurrency(spent)}
                                         </NeonText>
                                         <NeonText variant="caption" color={Colors.textTertiary}>of {formatCurrency(b.monthly_limit)}</NeonText>
@@ -186,14 +186,14 @@ export const BudgetsScreen: React.FC = () => {
                                 />
                                 {isDanger && (
                                     <View style={styles.warningBanner}>
-                                        <Ionicons name="warning" size={14} color={Colors.neonPink} />
-                                        <NeonText variant="caption" color={Colors.neonPink}>Over budget!</NeonText>
+                                        <Ionicons name="warning" size={14} color={Colors.rust} />
+                                        <NeonText variant="caption" color={Colors.rust}>Over budget!</NeonText>
                                     </View>
                                 )}
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.md, marginTop: Spacing.md }}>
                                     <TouchableOpacity onPress={() => handleEdit(b)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                        <Ionicons name="pencil" size={14} color={Colors.electricBlue} />
-                                        <NeonText variant="caption" color={Colors.electricBlue}>Edit</NeonText>
+                                        <Ionicons name="pencil" size={14} color={Colors.info} />
+                                        <NeonText variant="caption" color={Colors.info}>Edit</NeonText>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => handleDelete(b)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                                         <Ionicons name="trash" size={14} color={Colors.danger} />
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     budgetCard: { marginBottom: Spacing.md },
     budgetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     budgetInfo: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    warningBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginTop: Spacing.sm, paddingVertical: Spacing.xs, paddingHorizontal: Spacing.sm, backgroundColor: `${Colors.neonPink}15`, borderRadius: BorderRadius.sm },
+    warningBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginTop: Spacing.sm, paddingVertical: Spacing.xs, paddingHorizontal: Spacing.sm, backgroundColor: `${Colors.rust}15`, borderRadius: BorderRadius.sm },
     globalRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: Spacing.md },
     allExpensesBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.md, borderRadius: BorderRadius.md, borderWidth: 1.5, borderColor: Colors.border, marginBottom: Spacing.md, backgroundColor: 'transparent' },
 });

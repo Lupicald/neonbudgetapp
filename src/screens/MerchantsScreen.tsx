@@ -51,8 +51,8 @@ export const MerchantsScreen: React.FC = () => {
                     renderItem={({ item }) => (
                         <TouchableOpacity onLongPress={() => handleDelete(item)} activeOpacity={0.8}>
                             <GlassCard style={styles.merchantCard}>
-                                <View style={[styles.merchantIcon, { backgroundColor: (item.category_color || Colors.electricBlue) + '20' }]}>
-                                    <Ionicons name={(item.category_icon || 'storefront') as any} size={22} color={item.category_color || Colors.electricBlue} />
+                                <View style={[styles.merchantIcon, { backgroundColor: (item.category_color || Colors.info) + '20' }]}>
+                                    <Ionicons name={(item.category_icon || 'storefront') as any} size={22} color={item.category_color || Colors.info} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <NeonText variant="body">{item.name}</NeonText>
@@ -62,7 +62,7 @@ export const MerchantsScreen: React.FC = () => {
                                 </View>
                                 {(item as MerchantWithSpend).total_spent > 0 && (
                                     <View style={styles.spentBadge}>
-                                        <NeonText variant="caption" color={Colors.neonPink} style={{ fontWeight: '700' }}>
+                                        <NeonText variant="caption" color={Colors.rust} style={{ fontWeight: '700' }}>
                                             {formatCurrency((item as MerchantWithSpend).total_spent)}
                                         </NeonText>
                                         <NeonText variant="caption" color={Colors.textMuted}>spent</NeonText>

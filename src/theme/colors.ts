@@ -51,7 +51,8 @@ export const Colors = {
   onHero: '#F2EDE3',
   onRust: '#F2EDE3',
 
-  // Back-compat aliases (so untouched screens keep working under new palette)
+  // Semantic back-compat aliases still referenced by a handful of unmigrated screens.
+  // Slated for removal once every screen uses the canonical name above.
   background: '#0E0F0D',
   backgroundCard: '#1B1E1F',
   backgroundLight: '#16181B',
@@ -65,41 +66,6 @@ export const Colors = {
   tabBarBackground: '#0E0F0D',
   tabBarActive: '#F2EDE3',
   tabBarInactive: '#6E6A60',
-
-  // Legacy color tokens — repointed to Editorial Carbon equivalents.
-  // Kept ONLY so any unmigrated reference still compiles; new code must use semantic names.
-  neonPink: '#C9603D',
-  neonOrange: '#D9A246',
-  neonYellow: '#D9A246',
-  cyberGreen: '#4A8F5C',
-  neonPurple: '#5C8FA8',
-  neonPurpleLight: '#6BAF7B',
-  neonPurpleDark: '#1F3A28',
-  electricBlue: '#5C8FA8',
-  electricBlueLight: '#7AA9BE',
-  electricBlueDark: '#3D6C81',
-  cyberGreenLight: '#6BAF7B',
-  cyberGreenDark: '#1F3A28',
-  neonPinkLight: '#E07A55',
-  neonPinkDark: '#9B4530',
-  glowPurple: '#5C8FA8',
-  glowBlue: '#5C8FA8',
-  glowGreen: '#4A8F5C',
-  glowPink: '#C9603D',
-  glowOrange: '#D9A246',
-  // Gradient arrays — kept as flat dual-tone (no actual gradient in Editorial Carbon).
-  gradientPurple:     ['#4A8F5C', '#1F3A28'] as string[],
-  gradientPurpleBlue: ['#4A8F5C', '#5C8FA8'] as string[],
-  gradientBlue:       ['#5C8FA8', '#3D6C81'] as string[],
-  gradientGreen:      ['#4A8F5C', '#1F3A28'] as string[],
-  gradientPink:       ['#C9603D', '#3D1E14'] as string[],
-  gradientDark:       ['#262A2C', '#1B1E1F'] as string[],
-  gradientCard:       ['#262A2C', '#1B1E1F'] as string[],
-  gradientHero:       ['#16181B', '#0E0F0D'] as string[],
-  gradientIncome:     ['#4A8F5C', '#1F3A28'] as string[],
-  gradientExpense:    ['#C9603D', '#3D1E14'] as string[],
-  gradientPlanned:    ['#D9A246', '#3D1E14'] as string[],
-  backgroundCardLight: '#262A2C',
 };
 
 // Editorial dual-tone palette — verde billete, terracota, ámbar y tonos planos.

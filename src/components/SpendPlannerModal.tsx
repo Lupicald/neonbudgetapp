@@ -205,8 +205,8 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                     title: '¡Adelante!',
                     subtitle: 'Todo indica que puedes hacer este gasto.',
                     reasons,
-                    color: Colors.cyberGreen,
-                    glowColor: Colors.glowGreen,
+                    color: Colors.accent,
+                    glowColor: Colors.accent,
                     icon: 'checkmark-circle',
                 };
             } else if (status === 'caution') {
@@ -215,8 +215,8 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                     title: 'Con precaución',
                     subtitle: 'Puedes hacerlo, pero ten en cuenta esto:',
                     reasons,
-                    color: Colors.neonOrange,
-                    glowColor: Colors.glowOrange,
+                    color: Colors.amber,
+                    glowColor: Colors.amber,
                     icon: 'warning',
                 };
             } else {
@@ -225,8 +225,8 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                     title: 'Mejor no',
                     subtitle: 'Hay razones por las que este gasto no conviene:',
                     reasons,
-                    color: Colors.neonPink,
-                    glowColor: Colors.glowPink,
+                    color: Colors.rust,
+                    glowColor: Colors.rust,
                     icon: 'close-circle',
                 };
             }
@@ -252,7 +252,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
 
     const handleAddCategory = () => {
         onClose();
-        navigation.navigate('Settings', { screen: 'CategoriesManage' });
+        navigation.navigate('Plan', { screen: 'CategoriesManage' });
     };
 
     const STEPS = ['¿Es importante?', 'Categoría', 'Cuenta', 'Vendor', 'Monto', 'Resultado'];
@@ -264,7 +264,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
             case 0:
                 return (
                     <View style={styles.stepContent}>
-                        <Ionicons name="help-circle-outline" size={52} color={Colors.neonPurple} style={styles.stepIcon} />
+                        <Ionicons name="help-circle-outline" size={52} color={Colors.info} style={styles.stepIcon} />
                         <NeonText variant="subtitle" align="center" style={styles.stepQuestion}>
                             ¿Este gasto es importante o necesario?
                         </NeonText>
@@ -272,9 +272,9 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                             Piensa si el impacto sería notable si no lo haces
                         </NeonText>
                         {[
-                            { id: 'yes', label: 'Sí, es necesario', icon: 'checkmark-circle', color: Colors.cyberGreen },
-                            { id: 'maybe', label: 'Tal vez...', icon: 'help-circle', color: Colors.neonOrange },
-                            { id: 'no', label: 'No realmente', icon: 'close-circle', color: Colors.neonPink },
+                            { id: 'yes', label: 'Sí, es necesario', icon: 'checkmark-circle', color: Colors.accent },
+                            { id: 'maybe', label: 'Tal vez...', icon: 'help-circle', color: Colors.amber },
+                            { id: 'no', label: 'No realmente', icon: 'close-circle', color: Colors.rust },
                         ].map(opt => (
                             <TouchableOpacity
                                 key={opt.id}
@@ -305,7 +305,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
             case 1:
                 return (
                     <View style={styles.stepContent}>
-                        <Ionicons name="grid-outline" size={52} color={Colors.electricBlue} style={styles.stepIcon} />
+                        <Ionicons name="grid-outline" size={52} color={Colors.info} style={styles.stepIcon} />
                         <NeonText variant="subtitle" align="center" style={styles.stepQuestion}>
                             ¿Qué categoría es el gasto?
                         </NeonText>
@@ -330,14 +330,14 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                             style={{ marginLeft: 4 }}
                                         >
-                                            <Ionicons name="trash-outline" size={16} color={Colors.neonPink} />
+                                            <Ionicons name="trash-outline" size={16} color={Colors.rust} />
                                         </TouchableOpacity>
                                     )}
                                 </TouchableOpacity>
                             ))}
                             <TouchableOpacity style={styles.addNewBtn} onPress={handleAddCategory} activeOpacity={0.8}>
-                                <Ionicons name="add-circle-outline" size={20} color={Colors.electricBlue} />
-                                <NeonText variant="body" color={Colors.electricBlue}>Nueva categoría</NeonText>
+                                <Ionicons name="add-circle-outline" size={20} color={Colors.info} />
+                                <NeonText variant="body" color={Colors.info}>Nueva categoría</NeonText>
                             </TouchableOpacity>
                         </ScrollView>
                         <View style={styles.stepNavRow}>
@@ -363,7 +363,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
             case 2:
                 return (
                     <View style={styles.stepContent}>
-                        <Ionicons name="wallet-outline" size={52} color={Colors.cyberGreen} style={styles.stepIcon} />
+                        <Ionicons name="wallet-outline" size={52} color={Colors.accent} style={styles.stepIcon} />
                         <NeonText variant="subtitle" align="center" style={styles.stepQuestion}>
                             ¿De qué cuenta sale el dinero?
                         </NeonText>
@@ -380,7 +380,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                                         <NeonText variant="body" color={data.account?.id === acc.id ? acc.color : Colors.textSecondary}>
                                             {acc.name}
                                         </NeonText>
-                                        <NeonText variant="caption" color={acc.balance >= 0 ? Colors.cyberGreen : Colors.neonPink}>
+                                        <NeonText variant="caption" color={acc.balance >= 0 ? Colors.accent : Colors.rust}>
                                             {formatCurrency(acc.balance)}
                                         </NeonText>
                                     </View>
@@ -413,7 +413,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
             case 3:
                 return (
                     <View style={styles.stepContent}>
-                        <Ionicons name="storefront-outline" size={52} color={Colors.neonOrange} style={styles.stepIcon} />
+                        <Ionicons name="storefront-outline" size={52} color={Colors.amber} style={styles.stepIcon} />
                         <NeonText variant="subtitle" align="center" style={styles.stepQuestion}>
                             ¿De qué comercio o vendor es?
                         </NeonText>
@@ -449,7 +449,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
             case 4:
                 return (
                     <View style={styles.stepContent}>
-                        <Ionicons name="cash-outline" size={52} color={Colors.neonPink} style={styles.stepIcon} />
+                        <Ionicons name="cash-outline" size={52} color={Colors.rust} style={styles.stepIcon} />
                         <NeonText variant="subtitle" align="center" style={styles.stepQuestion}>
                             ¿Cuánto costará?
                         </NeonText>
@@ -469,15 +469,15 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                             />
                         </View>
                         {data.account && data.amount && parseFloat(data.amount) > 0 && (
-                            <View style={[styles.balanceHint, { borderColor: parseFloat(data.amount) <= data.account.balance ? `${Colors.cyberGreen}44` : `${Colors.neonPink}44` }]}>
+                            <View style={[styles.balanceHint, { borderColor: parseFloat(data.amount) <= data.account.balance ? `${Colors.accent}44` : `${Colors.rust}44` }]}>
                                 <Ionicons
                                     name={parseFloat(data.amount) <= data.account.balance ? 'checkmark-circle-outline' : 'alert-circle-outline'}
                                     size={16}
-                                    color={parseFloat(data.amount) <= data.account.balance ? Colors.cyberGreen : Colors.neonPink}
+                                    color={parseFloat(data.amount) <= data.account.balance ? Colors.accent : Colors.rust}
                                 />
                                 <NeonText
                                     variant="caption"
-                                    color={parseFloat(data.amount) <= data.account.balance ? Colors.cyberGreen : Colors.neonPink}
+                                    color={parseFloat(data.amount) <= data.account.balance ? Colors.accent : Colors.rust}
                                 >
                                     {data.account.name}: {formatCurrency(data.account.balance)} disponible
                                 </NeonText>
@@ -556,7 +556,7 @@ export const SpendPlannerModal: React.FC<Props> = ({ visible, onClose }) => {
                             )}
                             {data.amount ? (
                                 <View style={styles.summaryChip}>
-                                    <NeonText variant="caption" color={Colors.neonPink} style={{ fontWeight: '700' }}>
+                                    <NeonText variant="caption" color={Colors.rust} style={{ fontWeight: '700' }}>
                                         ${parseFloat(data.amount).toFixed(2)}
                                     </NeonText>
                                 </View>
@@ -660,13 +660,13 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'ios' ? Spacing.lg : Spacing.xxxl,
         paddingBottom: Spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(31,204,88,0.08)',
+        borderBottomColor: 'rgba(74,143,92,0.08)',
     },
     closeBtn: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: '#1A5C38',
+        backgroundColor: '#1F3A28',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -684,20 +684,20 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#1A5C38',
+        backgroundColor: '#1F3A28',
     },
     dotDone: {
-        backgroundColor: Colors.electricBlue,
+        backgroundColor: Colors.info,
         width: 10,
         height: 10,
         borderRadius: 5,
     },
     dotActive: {
-        backgroundColor: Colors.neonPurple,
+        backgroundColor: Colors.info,
         width: 14,
         height: 8,
         borderRadius: 4,
-        shadowColor: Colors.glowPurple,
+        shadowColor: Colors.info,
         shadowOpacity: 0.8,
         shadowRadius: 6,
     },
@@ -723,8 +723,8 @@ const styles = StyleSheet.create({
         padding: Spacing.lg,
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(31,204,88,0.10)',
-        backgroundColor: '#101710',
+        borderColor: 'rgba(74,143,92,0.10)',
+        backgroundColor: '#1B1E1F',
         marginBottom: Spacing.sm,
     },
     listScroll: {
@@ -738,8 +738,8 @@ const styles = StyleSheet.create({
         padding: Spacing.md,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'rgba(31,204,88,0.08)',
-        backgroundColor: '#101710',
+        borderColor: 'rgba(74,143,92,0.08)',
+        backgroundColor: '#1B1E1F',
         marginBottom: Spacing.xs,
     },
     categoryDot: {
@@ -754,15 +754,15 @@ const styles = StyleSheet.create({
         padding: Spacing.md,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: `${Colors.electricBlue}44`,
+        borderColor: `${Colors.info}44`,
         borderStyle: 'dashed',
         justifyContent: 'center',
         marginTop: Spacing.xs,
     },
     textInput: {
-        backgroundColor: '#1A5C38',
+        backgroundColor: '#1F3A28',
         borderWidth: 1,
-        borderColor: '#1A5C38',
+        borderColor: '#1F3A28',
         borderRadius: 14,
         padding: Spacing.lg,
         color: Colors.textPrimary,
@@ -781,7 +781,7 @@ const styles = StyleSheet.create({
         padding: Spacing.md,
         borderRadius: 10,
         borderWidth: 1,
-        backgroundColor: '#101710',
+        backgroundColor: '#1B1E1F',
         marginBottom: Spacing.lg,
     },
     stepNavRow: {
@@ -832,7 +832,7 @@ const styles = StyleSheet.create({
     reasonRow: {
         paddingVertical: Spacing.xs,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(31,204,88,0.06)',
+        borderBottomColor: 'rgba(74,143,92,0.06)',
         lineHeight: 22,
     },
     summaryRow: {
@@ -850,8 +850,8 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.xs,
         borderRadius: 999,
         borderWidth: 1,
-        borderColor: '#1A5C38',
-        backgroundColor: '#101710',
+        borderColor: '#1F3A28',
+        backgroundColor: '#1B1E1F',
     },
     registerBtn: {
         borderRadius: 14,

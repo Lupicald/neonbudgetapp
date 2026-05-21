@@ -228,7 +228,7 @@ export const RecurringScreen: React.FC<Props> = () => {
     };
 
     const filtered = items.filter(i => i.type === tab);
-    const accentColor = tab === 'income' ? Colors.cyberGreen : Colors.neonPink;
+    const accentColor = tab === 'income' ? Colors.accent : Colors.rust;
     const incomeTotal = items.filter(i => i.type === 'income' && i.is_active).reduce((s, i) => s + getMonthlyAmount(i), 0);
     const expenseTotal = items.filter(i => i.type === 'expense' && i.is_active).reduce((s, i) => s + getMonthlyAmount(i), 0);
     const monthlyNet = incomeTotal - expenseTotal;
@@ -255,7 +255,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                     )}
                     {tab === 'planner' && (
                         <TouchableOpacity onPress={() => setPlannerModal(true)} style={s.addBtn} activeOpacity={0.8}>
-                            <View style={[s.addBtnGrad, { backgroundColor: Colors.neonOrange }]}>
+                            <View style={[s.addBtnGrad, { backgroundColor: Colors.amber }]}>
                                 <Ionicons name="add" size={22} color="#FFF" />
                             </View>
                         </TouchableOpacity>
@@ -268,21 +268,21 @@ export const RecurringScreen: React.FC<Props> = () => {
                     <View style={s.summaryRow}>
                         <View style={s.sumItem}>
                             <NeonText variant="label" color={Colors.textMuted}>IN</NeonText>
-                            <NeonText variant="subtitle" color={Colors.cyberGreen} style={{ fontWeight: '700' }}>
+                            <NeonText variant="subtitle" color={Colors.accent} style={{ fontWeight: '700' }}>
                                 +{formatCurrency(incomeTotal)}
                             </NeonText>
                         </View>
                         <View style={s.sumDiv} />
                         <View style={s.sumItem}>
                             <NeonText variant="label" color={Colors.textMuted}>OUT</NeonText>
-                            <NeonText variant="subtitle" color={Colors.neonPink} style={{ fontWeight: '700' }}>
+                            <NeonText variant="subtitle" color={Colors.rust} style={{ fontWeight: '700' }}>
                                 -{formatCurrency(expenseTotal)}
                             </NeonText>
                         </View>
                         <View style={s.sumDiv} />
                         <View style={s.sumItem}>
                             <NeonText variant="label" color={Colors.textMuted}>NET</NeonText>
-                            <NeonText variant="subtitle" color={monthlyNet >= 0 ? Colors.cyberGreen : Colors.neonPink} style={{ fontWeight: '700' }}>
+                            <NeonText variant="subtitle" color={monthlyNet >= 0 ? Colors.accent : Colors.rust} style={{ fontWeight: '700' }}>
                                 {formatCurrency(monthlyNet)}
                             </NeonText>
                         </View>
@@ -292,7 +292,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                 {/* Tabs */}
                 <View style={s.tabs}>
                     {(['income', 'expense', 'planner'] as MainTab[]).map(t => {
-                        const color = t === 'income' ? Colors.cyberGreen : t === 'expense' ? Colors.neonPink : Colors.neonOrange;
+                        const color = t === 'income' ? Colors.accent : t === 'expense' ? Colors.rust : Colors.amber;
                         const icon = t === 'income' ? 'arrow-down-circle-outline' : t === 'expense' ? 'arrow-up-circle-outline' : 'calendar-outline';
                         return (
                             <TouchableOpacity key={t} style={[s.tab, tab === t && { ...s.tabActive, backgroundColor: color }]} onPress={() => setTab(t)} activeOpacity={0.8}>
@@ -358,13 +358,13 @@ export const RecurringScreen: React.FC<Props> = () => {
                                                 <NeonText variant="caption" color={Colors.textMuted}>Skip</NeonText>
                                             </TouchableOpacity>
                                             <TouchableOpacity onPress={() => openEdit(item)} style={s.iconBtn}>
-                                                <Ionicons name="pencil-outline" size={15} color={Colors.electricBlue} />
+                                                <Ionicons name="pencil-outline" size={15} color={Colors.info} />
                                             </TouchableOpacity>
                                             <TouchableOpacity onPress={async () => { await toggleRecurringItem(item.id, !item.is_active); load(); }} style={s.iconBtn}>
-                                                <Ionicons name={item.is_active ? 'pause-circle-outline' : 'play-circle-outline'} size={15} color={item.is_active ? Colors.textTertiary : Colors.cyberGreen} />
+                                                <Ionicons name={item.is_active ? 'pause-circle-outline' : 'play-circle-outline'} size={15} color={item.is_active ? Colors.textTertiary : Colors.accent} />
                                             </TouchableOpacity>
                                             <TouchableOpacity onPress={() => handleDelete(item)} style={s.iconBtn}>
-                                                <Ionicons name="trash-outline" size={15} color={Colors.neonPink} />
+                                                <Ionicons name="trash-outline" size={15} color={Colors.rust} />
                                             </TouchableOpacity>
                                         </View>
                                     </View>
@@ -404,7 +404,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                             {timeline.map((event, idx) => {
                                 const isIncome = event.type === 'income';
                                 runningBalance += isIncome ? event.amount : -event.amount;
-                                const color = isIncome ? Colors.cyberGreen : Colors.neonPink;
+                                const color = isIncome ? Colors.accent : Colors.rust;
                                 const sign = isIncome ? '+' : '-';
 
                                 return (
@@ -421,14 +421,14 @@ export const RecurringScreen: React.FC<Props> = () => {
                                                     <NeonText variant="caption" color={Colors.textMuted}>{event.date}</NeonText>
                                                     <NeonText variant="body" style={{ fontWeight: '600' }} numberOfLines={1}>{event.name}</NeonText>
                                                     {event.isOneTime && (
-                                                        <NeonText variant="caption" color={Colors.neonOrange}>one-time</NeonText>
+                                                        <NeonText variant="caption" color={Colors.amber}>one-time</NeonText>
                                                     )}
                                                 </View>
                                                 <View style={{ alignItems: 'flex-end', gap: 2 }}>
                                                     <NeonText variant="subtitle" color={color} style={{ fontWeight: '700' }}>
                                                         {sign}{formatCurrency(event.amount)}
                                                     </NeonText>
-                                                    <NeonText variant="caption" color={runningBalance >= 0 ? Colors.cyberGreen : Colors.neonPink}>
+                                                    <NeonText variant="caption" color={runningBalance >= 0 ? Colors.accent : Colors.rust}>
                                                         bal: {runningBalance >= 0 ? '' : '-'}{formatCurrency(Math.abs(runningBalance))}
                                                     </NeonText>
                                                 </View>
@@ -446,7 +446,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                             {/* Month summary */}
                             <GlassCard style={[s.summaryCard, { marginTop: Spacing.lg }]}>
                                 <NeonText variant="caption" color={Colors.textMuted} style={{ marginBottom: 6, letterSpacing: 1 }}>MONTH END BALANCE</NeonText>
-                                <NeonText variant="subtitle" color={runningBalance >= 0 ? Colors.cyberGreen : Colors.neonPink} style={{ fontWeight: '700', fontSize: 22 }}>
+                                <NeonText variant="subtitle" color={runningBalance >= 0 ? Colors.accent : Colors.rust} style={{ fontWeight: '700', fontSize: 22 }}>
                                     {runningBalance >= 0 ? '+' : ''}{formatCurrency(runningBalance)}
                                 </NeonText>
                                 <NeonText variant="caption" color={Colors.textMuted} style={{ marginTop: 4 }}>
@@ -474,7 +474,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                         {!editId && tab !== 'planner' && (
                             <View style={[s.tabs, { marginBottom: Spacing.lg }]}>
                                 {(['income', 'expense'] as TransactionType[]).map(t => (
-                                    <TouchableOpacity key={t} style={[s.tab, tab === t && { ...s.tabActive, backgroundColor: t === 'income' ? Colors.cyberGreen : Colors.neonPink }]} onPress={() => setTab(t as MainTab)}>
+                                    <TouchableOpacity key={t} style={[s.tab, tab === t && { ...s.tabActive, backgroundColor: t === 'income' ? Colors.accent : Colors.rust }]} onPress={() => setTab(t as MainTab)}>
                                         <NeonText variant="caption" color={tab === t ? '#FFF' : Colors.textTertiary} style={{ fontWeight: tab === t ? '700' : '400' }}>
                                             {t === 'income' ? 'Income' : 'Expense'}
                                         </NeonText>
@@ -613,7 +613,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.lg }}>
                             <View style={s.chipRow}>
                                 <TouchableOpacity
-                                    style={[s.catChip, pCat === null && { backgroundColor: '#1A5C38', borderColor: '#1FCC58' }]}
+                                    style={[s.catChip, pCat === null && { backgroundColor: Colors.greenDeep, borderColor: Colors.accent }]}
                                     onPress={() => setPCat(null)}
                                 >
                                     <Ionicons name="close-circle-outline" size={24} color={Colors.textMuted} />
@@ -632,7 +632,7 @@ export const RecurringScreen: React.FC<Props> = () => {
                         </ScrollView>
 
                         <TouchableOpacity onPress={handleAddPlannerExpense} activeOpacity={0.85} style={s.saveBtn}>
-                            <View style={[s.saveBtnGrad, { backgroundColor: Colors.neonOrange }]}>
+                            <View style={[s.saveBtnGrad, { backgroundColor: Colors.amber }]}>
                                 <NeonText variant="body" color="#FFF" style={{ fontWeight: '700' }}>Add to Planner</NeonText>
                             </View>
                         </TouchableOpacity>
@@ -695,11 +695,11 @@ const s = StyleSheet.create({
         padding: Spacing.xl, borderTopWidth: 1, borderTopColor: Colors.borderLight,
         maxHeight: '90%',
     },
-    handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#6B8F74', alignSelf: 'center', marginBottom: Spacing.xl },
+    handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.borderStrong, alignSelf: 'center', marginBottom: Spacing.xl },
     fInput: { marginBottom: Spacing.md },
     fLabel: { marginBottom: 6, letterSpacing: 0.8 },
     input: {
-        backgroundColor: '#101710', borderWidth: 1, borderColor: 'rgba(31,204,88,0.10)',
+        backgroundColor: Colors.bgCard, borderWidth: 1, borderColor: Colors.border,
         borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.md,
         color: Colors.textPrimary, fontSize: FontSize.md,
     },

@@ -65,12 +65,12 @@ export const TransferScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                     </TouchableOpacity>
                     <NeonText variant="title">Transfers</NeonText>
                     <TouchableOpacity onPress={() => setShowForm(!showForm)}>
-                        <Ionicons name={showForm ? 'close-outline' : 'add-circle-outline'} size={28} color={Colors.electricBlue} />
+                        <Ionicons name={showForm ? 'close-outline' : 'add-circle-outline'} size={28} color={Colors.info} />
                     </TouchableOpacity>
                 </View>
 
                 {showForm && (
-                    <GlassCard style={styles.form} glowColor={Colors.neonPurple}>
+                    <GlassCard style={styles.form} glowColor={Colors.info}>
                         <NeonText variant="subtitle">New Transfer</NeonText>
 
                         {/* From Account */}
@@ -88,7 +88,7 @@ export const TransferScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
                         {/* Arrow */}
                         <View style={styles.arrowContainer}>
-                            <Ionicons name="arrow-down-outline" size={28} color={Colors.electricBlue} />
+                            <Ionicons name="arrow-down-outline" size={28} color={Colors.info} />
                         </View>
 
                         {/* To Account */}
@@ -113,7 +113,7 @@ export const TransferScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                                 <NeonText variant="body" color={Colors.textSecondary}>
                                     {fromAccount.name} → {toAccount.name}
                                 </NeonText>
-                                <NeonText variant="subtitle" glow glowColor={Colors.electricBlue} color={Colors.electricBlue}>
+                                <NeonText variant="subtitle" glow glowColor={Colors.info} color={Colors.info}>
                                     {formatCurrency(parseFloat(amount) || 0)}
                                 </NeonText>
                             </GlassCard>
@@ -134,7 +134,7 @@ export const TransferScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                                     {t.note ? <NeonText variant="caption" color={Colors.textTertiary}>{t.note}</NeonText> : null}
                                     <NeonText variant="caption" color={Colors.textMuted}>{t.date}</NeonText>
                                 </View>
-                                <NeonText variant="subtitle" color={Colors.electricBlue}>{formatCurrency(t.amount)}</NeonText>
+                                <NeonText variant="subtitle" color={Colors.info}>{formatCurrency(t.amount)}</NeonText>
                             </View>
                         </GlassCard>
                     </TouchableOpacity>
